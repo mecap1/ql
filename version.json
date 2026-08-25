@@ -1,0 +1,6 @@
+{
+  "version": "1.3.0",
+  "build": 5,
+  "released_at": "2026-08-24",
+  "notes": "Đồng bộ dữ liệu thời gian thực giữa các thiết bị/tab khi dùng chế độ Firebase; nâng cấp design system (màu sắc, shadow, spacing) theo chuẩn Premium Blue Enterprise; đóng gói hoàn chỉnh bản Desktop (.exe) và Android (.apk) qua GitHub Actions với icon thương hiệu mới."
+}
