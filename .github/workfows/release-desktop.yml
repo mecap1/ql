@@ -3,7 +3,7 @@ name: Build Desktop (Windows)
 on:
   push:
     tags:
-      - "desktop-v*"
+      - "desktop-v1.0.0"
   workflow_dispatch:
 
 permissions:
