@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    tags:
+      - "android-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Copy web app into www/
+        run: |
+          mkdir -p www
+          cp ../index.html www/
+          cp ../manifest.json www/
+          cp ../sw.js www/
+          cp ../version.json www/
+          if [ -d ../assets ]; then cp -r ../assets www/assets; fi
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add Android platform (first run) / sync
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+
+      - name: Generate app icon & splash screen from brand source
+        run: npx @capacitor/assets generate --android --iconBackgroundColor "#0068FF" --splashBackgroundColor "#F4F7FB"
+
+      - name: Sync generated assets into native project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android-app/android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mes-cable-android-apk
+          path: android-app/android/app/build/outputs/apk/debug/*.apk
+
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: android-app/android/app/build/outputs/apk/debug/*.apk
