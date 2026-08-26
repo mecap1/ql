@@ -18,11 +18,11 @@
   --panel:#FFFFFF;
   --panel-2:#F1F5F9;
   --line:#E2E8F0;
-  --copper:#0068FF;        /* primary */
-  --copper-2:#0052CC;      /* primary hover / accent */
-  --copper-dim:#0068FF;    /* dùng cho active nav / avatar — cùng primary */
-  --primary:#0068FF;
-  --primary-hover:#0052CC;
+  --copper:#1E90FF;        /* primary — đổi theo mẫu BRAVO ERPVN (lấy mẫu pixel: rgb(30,144,255)) */
+  --copper-2:#1873CC;      /* primary hover / accent — tối hơn 1 nấc để có trạng thái hover rõ ràng */
+  --copper-dim:#1E90FF;    /* dùng cho active nav / avatar — cùng primary */
+  --primary:#1E90FF;
+  --primary-hover:#1873CC;
   --primary-light:#EAF3FF;
   --auth-accent:#0068FF;
   --auth-accent-2:#0052CC;
@@ -522,16 +522,16 @@ tbody tr.clickable{cursor:pointer;}
 .pcd .err-msg{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;}
 
 /* Global Header / Sidebar sáng — chỉ bật khi đang ở trang Dashboard (không đổi theme các trang khác) */
-#app-shell.pcd-shell-light .sidebar{background:#2563EB;border-right:1px solid #2563EB;}
+#app-shell.pcd-shell-light .sidebar{background:#1B4F7F;border-right:1px solid #1B4F7F;}
 #app-shell.pcd-shell-light .sidebar .brand h1{color:#FFFFFF;}
-#app-shell.pcd-shell-light .sidebar .brand span,#app-shell.pcd-shell-light .nav-title{color:#D6E3FF;}
-#app-shell.pcd-shell-light .brand-mark{background:#1D4ED8;box-shadow:none;}
+#app-shell.pcd-shell-light .sidebar .brand span,#app-shell.pcd-shell-light .nav-title{color:#B9D2E8;}
+#app-shell.pcd-shell-light .brand-mark{background:#1E90FF;box-shadow:none;}
 #app-shell.pcd-shell-light .sidebar .brand-logo-img{background:#FFFFFF;border-radius:8px;padding:4px;box-sizing:border-box;}
 #app-shell.pcd-shell-light .nav-item{color:#EAF1FF;border-left:3px solid transparent;padding-left:7px;}
 #app-shell.pcd-shell-light .nav-item:hover{background:rgba(255,255,255,0.14);color:#FFFFFF;}
-#app-shell.pcd-shell-light .nav-item.active{background:rgba(255,255,255,0.24);color:#FFFFFF;font-weight:700;border-left:3px solid #FFFFFF;border-radius:0 8px 8px 0;}
+#app-shell.pcd-shell-light .nav-item.active{background:#1E90FF;color:#FFFFFF;font-weight:700;border-left:3px solid #FFFFFF;border-radius:0 8px 8px 0;box-shadow:none;}
 #app-shell.pcd-shell-light .sidebar-foot{border-top:1px solid rgba(255,255,255,0.22);}
-#app-shell.pcd-shell-light .user-chip .av{background:#1D4ED8;}
+#app-shell.pcd-shell-light .user-chip .av{background:#1E90FF;}
 #app-shell.pcd-shell-light .user-chip .name{color:#FFFFFF;}
 #app-shell.pcd-shell-light .user-chip .role{color:#D6E3FF;}
 #app-shell.pcd-shell-light .logout-link{color:#D6E3FF;}
@@ -539,8 +539,8 @@ tbody tr.clickable{cursor:pointer;}
 /* Các nút subtab dạng "viên thuốc" (vd trang Kho: Tất cả/NVL/PHE...) và số đếm đi kèm —
    mặc định dùng màu nền tối của theme gốc nên khi hiển thị trên nền sáng bị chìm, khó đọc. */
 #app-shell.pcd-shell-light .subtab-btn{background:#F1F5F9;border:1px solid #E2E8F0;color:#51607A;}
-#app-shell.pcd-shell-light .subtab-btn:hover{border-color:#2563EB;color:#172033;}
-#app-shell.pcd-shell-light .subtab-btn.active{background:#2563EB;border-color:#2563EB;color:#fff;}
+#app-shell.pcd-shell-light .subtab-btn:hover{border-color:#1E90FF;color:#172033;}
+#app-shell.pcd-shell-light .subtab-btn.active{background:#1E90FF;border-color:#1E90FF;color:#fff;}
 #app-shell.pcd-shell-light .subtab-btn .cnt{background:rgba(255,255,255,0.3);color:inherit;}
 #app-shell.pcd-shell-light .subtab-btn:not(.active) .cnt{background:#E2E8F0;color:#334155;}
 
@@ -1873,7 +1873,7 @@ tbody tr.clickable{cursor:pointer;}
 #app-shell.pcd-shell-light .mh-icon-btn{border-color:#E2E8F0;color:#51607A;}
 #app-shell.pcd-shell-light .mobile-bottomnav{background:#FFFFFF;border-top:1px solid #E2E8F0;}
 #app-shell.pcd-shell-light .mbn-item{color:#8896AC;}
-#app-shell.pcd-shell-light .mbn-item.active{color:#1565D8;}
+#app-shell.pcd-shell-light .mbn-item.active{color:#1E90FF;}
 
 /* ================================================================
    TOUCH TARGET ≥44px TRÊN MOBILE/TABLET (≤860px) — hạng mục #1 checklist
@@ -2982,11 +2982,14 @@ function loadConfig(){
   // Chưa từng cấu hình (lần đầu mở app) → dùng thẳng Database URL mặc định, không bắt qua Setup.
   return { databaseURL: DEFAULT_DATABASE_URL };
 }
-// PHASE 8.5 — RỦI RO #2: công tắc BẬT/TẮT yêu cầu đăng nhập ẩn danh (Anonymous Auth).
-// Đang để FALSE theo yêu cầu — app chạy được ngay như trước khi có Phase 8.5, KHÔNG cần làm gì trên
-// Firebase Console. Khi nào bạn đã bật "Anonymous" (Authentication > Sign-in method) và dán xong
-// database.rules.json vào Firebase Console > Realtime Database > Rules, chỉ cần đổi dòng dưới thành
-// true để bật lại lớp bảo vệ "chặn truy cập vô danh" — không cần sửa gì khác trong code.
+// PHASE 9 — ƯU TIÊN 1 (hardening): công tắc BẬT/TẮT yêu cầu đăng nhập ẩn danh (Anonymous Auth).
+// ĐANG ĐỂ FALSE — app chạy ngay như hiện tại, KHÔNG cần làm gì trên Firebase Console.
+// File database.rules.json (đi kèm bản vá này) vẫn có thể dán vào Firebase Console bất cứ lúc nào để
+// khoá cứng nguyên tắc bất biến của sổ cái (kho_giao_dich/*_audit_log) — việc đó không phụ thuộc flag
+// này. Chỉ riêng phần "chặn truy cập ẩn danh" (rule auth != null) mới cần bật flag này lên true, và
+// PHẢI làm cả 2 việc sau trước khi bật, nếu không app sẽ báo lỗi kết nối ngay lúc khởi động:
+//   1) Firebase Console > Authentication > Sign-in method > bật "Anonymous".
+//   2) Firebase Console > Realtime Database > Rules > dán database.rules.json > Publish.
 const REQUIRE_FIREBASE_AUTH = false;
 
 function initFirebase(cfg){
@@ -3127,10 +3130,22 @@ const ROLE_LABELS = { admin:'Quản trị', quan_ly:'Quản lý', thong_ke:'Th�
 /* ================================================================
    PHASE 7 — PERMISSION MATRIX (Master PROM mục XLII)
    Nguyên tắc:
-   - Đây là permission ở UI (client) — theo đúng kiến trúc Firebase Realtime DB hiện có của dự án
-     (không có backend riêng để chặn ở tầng server). Muốn chặn tuyệt đối ở tầng dữ liệu cần cấu hình
-     thêm Firebase Security Rules theo role — nằm ngoài phạm vi 1 file HTML tĩnh này, ghi chú lại như
-     một RISK đã biết (xem báo cáo cuối Phase 7), không bịa ra là đã an toàn tuyệt đối.
+   - Đây vẫn là permission Ở UI (client) — ẩn/khoá nút theo role cho trải nghiệm đúng, KHÔNG phải cơ
+     chế bảo mật tầng dữ liệu. Đăng nhập của app này dùng bảng users tự quản (username/sha256), không
+     phải Firebase Auth thật — nên Firebase Security Rules KHÔNG THỂ biết "phiên đang đăng nhập role
+     gì" để chặn đúng người theo role ở tầng server (auth.uid của Anonymous Auth không liên quan gì
+     đến userId trong bảng users). Đây là giới hạn kiến trúc thật, không phải điều có thể vá bằng vài
+     dòng rules.
+   - PHASE 9 (Ưu tiên 1) đã bù đắp 2 việc CÓ THỂ chặn thật ở tầng server mà không cần role thật:
+     (a) chặn truy cập ẩn danh hoàn toàn (bot/script quét thẳng Database URL công khai khi chưa từng
+         mở app) — bằng Anonymous Auth + rule "auth != null" (xem REQUIRE_FIREBASE_AUTH ở trên).
+     (b) khoá CỨNG nguyên tắc bất biến của sổ cái/nhật ký (kho_giao_dich, *_audit_log, nvl_cap_phat_log)
+         ngay ở tầng Rules — cấm update/delete các node này bất kể ai gọi API, không phụ thuộc role.
+     Xem file database.rules.json đi kèm để biết chi tiết + hướng dẫn áp dụng.
+   - Muốn có RBAC THẬT theo từng role ở tầng server (VD: chặn "van_hanh" ghi vào PO ngay tại Rules),
+     bắt buộc phải đổi cơ chế đăng nhập sang Firebase Authentication thật (email/password hoặc custom
+     token qua Cloud Function) để auth.uid gắn liền với role đáng tin — đây là việc cần làm ở giai đoạn
+     sau, có ảnh hưởng tới toàn bộ luồng đăng nhập/tạo user hiện có nên không gộp chung vào bản vá này.
    - view/create/edit/approve/adjust/transfer/delete — đúng 7 quyền liệt kê ở mục XLII.
    - "delete" ở đây = vô hiệu hoá (is_active:false) cho MASTER DATA/BOM/PO/LSX/Batch — KHÔNG áp dụng
      cho Inventory Transaction / Production Lot / Production Record, các bảng này đã canDelete:false
@@ -14311,6 +14326,7 @@ async function renderBcaoPoDetail(){
       </div>
       <div class="pcd-progress-track"><div class="pcd-progress-fill" style="width:${Math.max(0,Math.min(100,data.kpi.ty_le_hoan_thanh))}%;background:${data.kpi.ty_le_hoan_thanh>100?'var(--pcd-red)':'var(--pcd-blue)'};"></div></div>
       <div class="pcd-progress-pct">${fmtNum(data.kpi.ty_le_hoan_thanh)}%${data.kpi.ty_le_hoan_thanh>=100?' — HOÀN THÀNH':''}</div>
+      ${data.kpi.cong_doan_cuoi ? `<div class="pcd-note" style="margin-top:8px;"><i data-lucide="flag"></i><span>Tại công đoạn cuối (<b>${esc(data.kpi.cong_doan_cuoi.ten)}</b>) — thành phẩm thật sự sẵn sàng xuất: <b>${fmtNum(data.kpi.cong_doan_cuoi.thuc_te_met)} / ${fmtNum(data.kpi.cong_doan_cuoi.ke_hoach_met)} m (${fmtNum(data.kpi.cong_doan_cuoi.ty_le)}%)</b> — chỉ số trên cùng đo theo công đoạn CAO NHẤT trong chuyền nên có thể cao hơn con số này.</span></div>` : ''}
     </div>
 
     <div class="pcd-row2">
@@ -14815,19 +14831,35 @@ async function computeBaoCaoData(poId){
 
   const bcRows = []; bcSnap.forEach(ch=>{ const v=ch.val(); if(lsxIds.includes(v.lsx_id)) bcRows.push(v); });
 
-  // Tiến độ theo LSX
+  // Tiến độ theo LSX — giữ nguyên field cong_doan (label) để không phá chỗ khác đang dùng, chỉ CỘNG
+  // THÊM cong_doan_id (phép cộng thêm, đúng nguyên tắc "GIỮ NGUYÊN 100%" của hàm này) để xác định
+  // đúng công đoạn cuối theo Routing thật ở khối "KPI tổng quan" bên dưới, thay cho điều kiện cũ luôn
+  // đúng (cdMap[b.cong_doan] || true) khiến reduce() chỉ trả về phần tử CUỐI MẢNG theo thứ tự lsxSnap
+  // trả về — không hề liên quan tới "công đoạn cuối" hay "thực tế lớn nhất" như comment cũ mô tả.
   const tienDo = lsxList.map(l=>{
     const rows = bcRows.filter(r=>r.lsx_id===l.__id);
     const thucTe = rows.reduce((s,r)=>s+Number(r.so_luong_thu_met||0),0);
     const keHoach = Number(l.so_luong_ke_hoach||0);
     const pheStage = rows.reduce((s,r)=>s+Number(r.so_luong_phe_met||0),0);
-    return { ma_lsx: l.ma_lsx, cong_doan: cdMap[l.cong_doan_id]?cdMap[l.cong_doan_id].ten_cd:'?', ke_hoach_met: Math.round(keHoach*100)/100, thuc_te_met: Math.round(thucTe*100)/100, ty_le: keHoach>0?Math.round(thucTe/keHoach*10000)/100:0, trang_thai: l.trang_thai,
+    return { ma_lsx: l.ma_lsx, cong_doan: cdMap[l.cong_doan_id]?cdMap[l.cong_doan_id].ten_cd:'?', cong_doan_id: l.cong_doan_id||null,
+      ke_hoach_met: Math.round(keHoach*100)/100, thuc_te_met: Math.round(thucTe*100)/100, ty_le: keHoach>0?Math.round(thucTe/keHoach*10000)/100:0, trang_thai: l.trang_thai,
       phe_met: Math.round(pheStage*100)/100, wip_met: Math.round(Math.max(keHoach-thucTe,0)*100)/100 };
   });
 
+  // Xác định đúng công đoạn CUỐI theo thu_tu thật của Routing (nguồn duy nhất — cùng nguyên tắc PROM
+  // 6.1 đang áp dụng ở các nơi khác trong file, VD: renderBaoCaoTraceTab). Không suy đoán/xấp xỉ: nếu
+  // PO chưa gán Routing hoặc routing_chi_tiet trống thì cuoiCung = null, KHÔNG tự bịa ra 1 công đoạn.
+  let cuoiCung = null;
+  if(po.routing_header_id){
+    const rtSnap = await db.ref('routing_chi_tiet').orderByChild('routing_header_id').equalTo(po.routing_header_id).once('value');
+    const rtLines = []; rtSnap.forEach(ch=>rtLines.push(ch.val()));
+    rtLines.sort((a,b)=>Number(a.thu_tu||0)-Number(b.thu_tu||0));
+    const lastCongDoanId = rtLines.length ? rtLines[rtLines.length-1].cong_doan_id : null;
+    if(lastCongDoanId) cuoiCung = tienDo.find(t=>t.cong_doan_id===lastCongDoanId) || null;
+  }
+
   // KPI tổng quan
   const tongKeHoach = Number(po.so_luong_ke_hoach||0);
-  const cuoiCung = tienDo.length ? tienDo.reduce((a,b)=>(cdMap[b.cong_doan]||true)?b:a) : null; // dùng công đoạn cuối theo routing lý tưởng, đơn giản hoá: lấy tổng thực tế lớn nhất
   const tongThucTe = tienDo.length ? Math.max(...tienDo.map(t=>t.thuc_te_met)) : 0;
   const tongPheMet = bcRows.reduce((s,r)=>s+Number(r.so_luong_phe_met||0),0);
   const tongThuMet = bcRows.reduce((s,r)=>s+Number(r.so_luong_thu_met||0),0);
@@ -14864,7 +14896,11 @@ async function computeBaoCaoData(poId){
 
   return {
     po_info: { ma_po: po.ma_po, khach_hang: po.khach_hang_id&&khMap[po.khach_hang_id]?khMap[po.khach_hang_id].ten_kh:'', san_pham: po.san_pham_id&&spMap[po.san_pham_id]?`${spMap[po.san_pham_id].ma_sp} - ${spMap[po.san_pham_id].ten_sp}`:'', trang_thai: po.trang_thai, ngay_dat_hang: po.ngay_dat_hang, ngay_giao_du_kien: po.ngay_giao_du_kien },
-    kpi: { so_luong_ke_hoach: Math.round(tongKeHoach*100)/100, so_luong_thuc_te: Math.round(tongThucTe*100)/100, ty_le_hoan_thanh: tyLeHoanThanh, tong_phe_met: Math.round(tongPheMet*100)/100, ty_le_phe: tyLePhe },
+    kpi: { so_luong_ke_hoach: Math.round(tongKeHoach*100)/100, so_luong_thuc_te: Math.round(tongThucTe*100)/100, ty_le_hoan_thanh: tyLeHoanThanh, tong_phe_met: Math.round(tongPheMet*100)/100, ty_le_phe: tyLePhe,
+      // Bổ sung mới (Ưu tiên 5): tiến độ đo TẠI ĐÚNG công đoạn cuối theo Routing — chỉ số "thành phẩm
+      // thật sự sẵn sàng xuất" — khác với ty_le_hoan_thanh ở trên vốn lấy MAX qua mọi công đoạn nên
+      // thường bị công đoạn đầu (VD: kéo sợi) kéo cao ảo hơn thực tế thành phẩm cuối chuyền.
+      cong_doan_cuoi: cuoiCung ? { ten: cuoiCung.cong_doan, thuc_te_met: cuoiCung.thuc_te_met, ke_hoach_met: cuoiCung.ke_hoach_met, ty_le: cuoiCung.ty_le } : null },
     tien_do: tienDo, phan_tich_phe: phanTichPhe, hieu_suat_nvl: hieuSuatNvl,
     bao_cong: bcRows.map(r=>({ ngay: r.ngay_san_xuat, don_vi_nhap: r.don_vi_nhap, thu_kg: r.so_luong_thu_kg, thu_met: r.so_luong_thu_met, phe_kg: r.so_luong_phe_kg, phe_met: r.so_luong_phe_met, ly_do_phe: r.ly_do_phe, nguoi_thuc_hien: r.nguoi_thuc_hien })),
   };
