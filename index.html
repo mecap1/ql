@@ -4846,7 +4846,13 @@ async function renderBomRevisions(main, spId){
     <div class="card"><div class="table-wrap" id="bom-rev-wrap"><div class="loading-inline">Đang tải…</div></div></div>
     </div>`;
   $('[data-back-bom]', main).addEventListener('click', ()=>navigateTo('bom'));
-  $('#bom-seed-color', main)?.addEventListener('click', async ()=>{ await bomEnsureColorSeed(); toast('Đã thêm 12 màu chuẩn vào Master Data > Màu dây'); renderBomRevisions(main, spId); });
+  $('#bom-seed-color', main)?.addEventListener('click', async ()=>{
+    const r = await bomEnsureColorSeed();
+    if(r.added>0 && r.skipped>0) toast(`Đã thêm ${r.added} màu mới vào Master Data > Màu dây (bỏ qua ${r.skipped} màu đã có sẵn, không tạo trùng)`);
+    else if(r.added>0) toast(`Đã thêm ${r.added} màu chuẩn vào Master Data > Màu dây`);
+    else toast('Master Data đã có đủ 12 màu chuẩn — không thêm gì thêm (tránh trùng)');
+    renderBomRevisions(main, spId);
+  });
 
   trackedOn(db.ref('bom_revision').orderByChild('san_pham_id').equalTo(spId), async snap=>{
     let list = [];
@@ -9240,9 +9246,17 @@ async function bomLoadColorLibrary(){
   return list;
 }
 async function bomEnsureColorSeed(){
-  for(const c of BOM_COLOR_FALLBACK){
+  // Đọc TOÀN BỘ master/mau hiện có trước (kể cả bản ghi is_active:false — vẫn tính là "đã tồn tại"
+  // để tránh tạo mã trùng), rồi chỉ push những mã (ma_mau) CHƯA có. An toàn khi bấm nhiều lần liên tiếp
+  // hoặc khi Master Data đã có sẵn một phần trong 12 màu chuẩn.
+  const snap = await db.ref('master/mau').once('value');
+  const existedCodes = new Set();
+  snap.forEach(ch=>{ const v = ch.val()||{}; if(v.ma_mau) existedCodes.add(String(v.ma_mau).trim().toUpperCase()); });
+  const toAdd = BOM_COLOR_FALLBACK.filter(c=>!existedCodes.has(c.code.toUpperCase()));
+  for(const c of toAdd){
     await db.ref('master/mau').push({ ma_mau:c.code, ten_mau:c.name, nhom_mau:'BOM chuẩn', hex_code:c.hex, is_active:true, created_at:Date.now() });
   }
+  return { added: toAdd.length, skipped: BOM_COLOR_FALLBACK.length - toAdd.length };
 }
 // Giá NVL lấy thẳng từ master/vat_tu.gia_tham_khao — không dùng giá demo hard-code.
 async function bomLoadVatTuPriceMap(){
