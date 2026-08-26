@@ -1657,6 +1657,7 @@ tbody tr.clickable{cursor:pointer;}
 .bom-nc-btn.active{background:var(--copper);color:#fff;border-color:var(--copper);font-weight:700;}
 .bom-swatch{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg-2);color:var(--text-dim);font-size:11px;cursor:pointer;}
 .bom-swatch .dot{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(255,255,255,0.2);}
+.bom-stripe-dot{width:16px;height:16px;border-radius:4px;display:none;flex-shrink:0;vertical-align:middle;border:1px solid rgba(0,0,0,0.18);box-shadow:0 0 0 1px rgba(255,255,255,0.35) inset;}
 .bom-pipeline{display:flex;align-items:center;gap:4px;overflow-x:auto;padding:10px 0 16px;}
 .bom-pnode{flex-shrink:0;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;min-width:96px;}
 .bom-pnode.active{border-color:var(--copper);background:rgba(193,112,60,0.12);}
@@ -5001,13 +5002,13 @@ async function renderBomDetailLegacy(main, revisionId, spId){
 
 /* ---------- Routing module (song song cấu trúc với BOM) ---------- */
 /* ---------- Render helpers cho BOM Builder Engine (bảng theo công đoạn / theo cây) ---------- */
-function bomRenderStageTable(c, stage, dgOverrides, matLabels){
+function bomRenderStageTable(c, stage, dgOverrides, matLabels, colorLib){
   matLabels = matLabels || {};
   const table = (headers, rows, footer)=> `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
     ${rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}
     </tbody>${footer?`<tfoot><tr>${footer.map(f=>`<td><b>${f}</b></td>`).join('')}</tr></tfoot>`:''}</table>`;
   const matInput = (field, val)=> `<input type="number" step="any" class="bom-mat-input" data-mat-field="${field}" value="${val}" style="width:110px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;">`;
-  const codeInput = (key, defaultName)=> `<input type="text" class="bom-mat-label-input" data-mat-key="${esc(key)}" value="${esc(matLabels[key]!==undefined && matLabels[key]!=='' ? matLabels[key] : defaultName)}" placeholder="Mã BTP..." list="btp-master-list" style="width:170px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:5px 8px;font-family:'JetBrains Mono';font-size:12px;">`;
+  const codeInput = (key, defaultName)=> { const v = matLabels[key]!==undefined && matLabels[key]!=='' ? matLabels[key] : defaultName; return `<span class="bom-stripe-wrap" style="display:inline-flex;align-items:center;gap:6px;"><span class="bom-stripe-dot" style="${bomStripeSwatchStyle(v, colorLib)||''}"></span><input type="text" class="bom-mat-label-input" data-mat-key="${esc(key)}" value="${esc(v)}" placeholder="Mã BTP..." list="btp-master-list" style="width:170px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:5px 8px;font-family:'JetBrains Mono';font-size:12px;"></span>`; };
   // Thanh "Tên/Mã BTP công đoạn" — MỘT mã duy nhất đại diện cho bán thành phẩm mà công đoạn
   // này TẠO RA (dùng để xuất/nhập Kho sau này). Đặt phía trên bảng, tách biệt với các dòng
   // số liệu/nguyên liệu đầu vào bên trong bảng (những dòng đó không phải BTP riêng để đặt mã).
@@ -5018,7 +5019,7 @@ function bomRenderStageTable(c, stage, dgOverrides, matLabels){
 
   if(stage==='loi'){
     const numInput = (r, field, val)=> `<input type="number" step="any" class="bom-loi-input" data-core-code="${r.code}" data-core-ke="${r.ke}" data-core-field="${field}" value="${val}" style="width:90px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;">`;
-    const labelInput = (r)=> `<input type="text" class="bom-loi-label-input" data-core-code="${r.code}" data-core-ke="${r.ke}" value="${esc(c.label(r))}" placeholder="Mã BTP..." list="btp-master-list" style="width:130px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;">`;
+    const labelInput = (r)=> { const v = c.label(r); return `<span class="bom-stripe-wrap" style="display:inline-flex;align-items:center;gap:6px;"><span class="bom-stripe-dot" style="${bomStripeSwatchStyle(v, colorLib)||''}"></span><input type="text" class="bom-loi-label-input" data-core-code="${r.code}" data-core-ke="${r.ke}" value="${esc(v)}" placeholder="Mã BTP..." list="btp-master-list" style="width:190px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;"></span>`; };
     return table(['Mã BTP — tự đặt','T.L Đồng (kg/m) — nhập số thật','T.L Nhựa (kg/m) — nhập số thật', ...(c.loiSelfCoated?['Nhựa bọc']:[]), 'Tổng','OD (mm) — nhập số thật','Hệ số mét — nhập số thật'],
       c.loiRows.map(r=>[
         labelInput(r),
@@ -5250,7 +5251,7 @@ async function renderBomBuilderEngine(main, revisionId, spId, rev){
       </div>
 
       <div class="card" style="margin-bottom:16px;">
-        <div class="table-wrap" id="bom-grid-wrap">${viewMode==='explosion'?bomRenderExplosionTable(explosion):bomRenderStageTable(c, selectedStage, dgOverrides, matLabels)}</div>
+        <div class="table-wrap" id="bom-grid-wrap">${viewMode==='explosion'?bomRenderExplosionTable(explosion):bomRenderStageTable(c, selectedStage, dgOverrides, matLabels, colorLib)}</div>
       </div>
 
       <div class="card" style="margin-bottom:16px;">
@@ -5313,6 +5314,10 @@ async function renderBomBuilderEngine(main, revisionId, spId, rev){
         if(!loiOverrides[key]) loiOverrides[key] = {};
         loiOverrides[key][field] = isNaN(val) ? 0 : val;
         draw();
+      }));
+      $all('.bom-loi-label-input, .bom-mat-label-input', main).forEach(inp=>inp.addEventListener('input', e=>{
+        const dot = e.target.previousElementSibling;
+        if(dot && dot.classList.contains('bom-stripe-dot')) dot.style.cssText = bomStripeSwatchStyle(e.target.value, colorLib) || 'display:none;';
       }));
       $all('.bom-loi-label-input', main).forEach(inp=>inp.addEventListener('change', e=>{
         const code = e.target.dataset.coreCode, ke = e.target.dataset.coreKe;
@@ -8969,7 +8974,7 @@ async function checkHardSequenceLock(lsxId){
    nguồn — chỉ chuyển ngôn ngữ JSX/React sang hàm JS thuần.
    ============================================================ */
 const BOM_COLOR_FALLBACK = [
-  { code:'WT', name:'Trắng', hex:'#F2EDE4' }, { code:'BK', name:'Đen', hex:'#0E0D0B' },
+  { code:'WH', name:'Trắng', hex:'#F2EDE4' }, { code:'BK', name:'Đen', hex:'#0E0D0B' },
   { code:'RD', name:'Đỏ', hex:'#B23A32' }, { code:'GR', name:'Xanh lá', hex:'#3F7D4E' },
   { code:'OR', name:'Cam', hex:'#C97A2E' }, { code:'GY', name:'Xám', hex:'#8B8378' },
   { code:'BR', name:'Nâu', hex:'#6B4A32' }, { code:'PR', name:'Tím', hex:'#6B4E9C' },
@@ -9245,6 +9250,28 @@ async function bomLoadVatTuPriceMap(){
   const map = {};
   snap.forEach(ch=>{ const v = ch.val(); if(v.is_active===false) return; const key=(v.ten_vt||'').trim().toLowerCase(); if(key) map[key] = { __id:ch.key, gia:Number(v.gia_tham_khao||0), ...v }; });
   return map;
+}
+// Nhận diện mã màu/kẻ trong 1 đoạn "Mã BTP" (VD "LOI/0.53BC/PE/GRWH") để hiển thị ô xem trước màu.
+// Chỉ xét ĐOẠN CUỐI (sau dấu "/" cuối cùng), so khớp với danh sách mã màu thật (colorLib/Master Data
+// > Màu, hoặc BOM_COLOR_FALLBACK nếu Master Data chưa có dữ liệu):
+//   - Khớp đúng 1 mã màu (VD "GR")                          -> ô màu ĐẶC 1 màu.
+//   - Khớp đúng 2 mã màu GHÉP LIỀN, KHÔNG dấu cộng (VD "GRWH" = "GR"+"WH") -> ô nền màu 1, có 1 SỌC
+//     CHÉO màu 2 — mô phỏng đúng dây có kẻ sọc ngoài thực tế. An toàn không nhầm ranh giới vì toàn bộ
+//     mã màu trong hệ thống hiện đều đúng 2 ký tự (WH/BK/RD/GR/OR/GY/BR/PR/PK/BL/YL/LB) — nếu sau này
+//     Master Data > Màu thêm mã dài khác 2 ký tự, cần rà lại hàm này để tránh đoán sai ranh giới.
+// Không khớp được -> trả về null, KHÔNG hiện ô màu (tránh hiện sai màu khi đoạn đó không phải mã màu).
+function bomStripeSwatchStyle(text, colorLib){
+  if(!text) return null;
+  const seg = String(text).split('/').pop().trim().toUpperCase();
+  if(!seg) return null;
+  const lib = (colorLib && colorLib.length) ? colorLib : BOM_COLOR_FALLBACK;
+  const byCode = {}; lib.forEach(c=>{ if(c.code) byCode[String(c.code).toUpperCase()] = c; });
+  if(byCode[seg]) return `display:inline-block;background:${byCode[seg].hex};`;
+  for(let i=1;i<seg.length;i++){
+    const a = byCode[seg.slice(0,i)], b = byCode[seg.slice(i)];
+    if(a && b) return `display:inline-block;background:linear-gradient(135deg, ${a.hex} 0%, ${a.hex} 38%, ${b.hex} 38%, ${b.hex} 62%, ${a.hex} 62%, ${a.hex} 100%);`;
+  }
+  return null;
 }
 function bomMatchVatTu(nvlName, vatTuMap){
   const key = nvlName.trim().toLowerCase();
