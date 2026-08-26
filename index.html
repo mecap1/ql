@@ -4567,11 +4567,18 @@ function renderDashboardBody(body, stats, data){
 }
 
 // PO Detail Modal (mục 8) — nhẹ, chỉ tổng quan + bảng LSX của PO, click LSX mở tiếp
-// openLsxDetailModal() đã có sẵn (mục 9 — không tạo cơ chế modal LSX thứ hai).
-// Kiểm tra tên màu có phải biến thể "Kẻ" (2 màu sọc) không — để vẽ hoạ tiết sọc chéo phân biệt
-// với màu trơn, giống bản Excel mẫu (Kẻ Nâu / Kẻ Cam / ...). Chỉ đọc TÊN MÀU thật từ Master Data,
-// không tự suy đoán màu.
-function dashIsKeVariant(mau){ return !!(mau && mau.ten_mau && /kẻ/i.test(mau.ten_mau)); }
+// Kiểm tra 1 LSX có phải biến thể "Kẻ" (2 màu sọc) không — để vẽ hoạ tiết sọc chéo phân biệt
+// với màu trơn, giống bản Excel mẫu (Kẻ Nâu / Kẻ Cam / ...).
+// ƯU TIÊN đọc cờ có cấu trúc lsx.la_ke (true/false) — được BOM Engine tự gán chính xác từ r.ke/
+// r.striped khi tạo LSX (không phụ thuộc chữ người dùng gõ ở đâu cả). Cờ này đáng tin cậy 100% vì
+// do máy tính, không do người gõ tay.
+// CHỈ khi LSX cũ (tạo TRƯỚC bản vá này) chưa có field la_ke (undefined) mới rơi về cách đoán cũ
+// qua tên Master Data > Màu (kém tin cậy hơn — vì Lõi đặc/kẻ cùng màu trước đây trỏ chung 1 mau_id
+// nên gần như luôn đoán sai là "không kẻ") — giữ lại chỉ để không vỡ hiển thị của LSX lịch sử.
+function dashIsKeVariant(lsx, mau){
+  if(lsx && lsx.la_ke !== undefined && lsx.la_ke !== null) return !!lsx.la_ke;
+  return !!(mau && mau.ten_mau && /kẻ/i.test(mau.ten_mau));
+}
 
 // Rút gọn tên công đoạn — bỏ tiền tố "Công đoạn " cho gọn (Master Data lưu "Công đoạn Lõi" nhưng
 // hiển thị chỉ cần "Lõi" là đủ hiểu, giống cách gọi thực tế trong xưởng).
@@ -4608,7 +4615,7 @@ function dashLsxColorChart(rows){
     const mau = x.mau;
     const color = mau && mau.hex_code ? mau.hex_code : '#8fa2b3';
     const label = mau ? mau.ten_mau : x.lsx.ma_lsx;
-    const fill = dashIsKeVariant(mau)
+    const fill = dashIsKeVariant(x.lsx, mau)
       ? `repeating-linear-gradient(45deg, ${color} 0 7px, rgba(255,255,255,.35) 7px 14px)`
       : color;
     return dashProgressRow(x.lsx.__id, label, `${label} — ${x.lsx.ma_lsx}`, x.pct, x.actualKg, x.planKg, fill);
@@ -5025,7 +5032,7 @@ function bomRenderStageTable(c, stage, dgOverrides, matLabels, colorLib){
 
   if(stage==='loi'){
     const numInput = (r, field, val)=> `<input type="number" step="any" class="bom-loi-input" data-core-code="${r.code}" data-core-ke="${r.ke}" data-core-field="${field}" value="${val}" style="width:90px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;">`;
-    const labelInput = (r)=> { const v = c.label(r); return `<span class="bom-stripe-wrap" style="display:inline-flex;align-items:center;gap:6px;"><span class="bom-stripe-dot" style="${bomStripeSwatchStyle(v, colorLib)||''}"></span><input type="text" class="bom-loi-label-input" data-core-code="${r.code}" data-core-ke="${r.ke}" value="${esc(v)}" placeholder="Mã BTP..." list="btp-master-list" style="width:190px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;"></span>`; };
+    const labelInput = (r)=> { const v = c.label(r); return `<span class="bom-stripe-wrap" style="display:inline-flex;align-items:center;gap:6px;"><span class="bom-stripe-dot" style="${bomRowSwatchStyle(r.code, r.ke, colorLib)||''}"></span><input type="text" class="bom-loi-label-input" data-core-code="${r.code}" data-core-ke="${r.ke}" value="${esc(v)}" placeholder="Mã BTP..." list="btp-master-list" style="width:190px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:4px 6px;font-family:'JetBrains Mono';font-size:12px;"></span>`; };
     return table(['Mã BTP — tự đặt','T.L Đồng (kg/m) — nhập số thật','T.L Nhựa (kg/m) — nhập số thật', ...(c.loiSelfCoated?['Nhựa bọc']:[]), 'Tổng','OD (mm) — nhập số thật','Hệ số mét — nhập số thật'],
       c.loiRows.map(r=>[
         labelInput(r),
@@ -5321,7 +5328,11 @@ async function renderBomBuilderEngine(main, revisionId, spId, rev){
         loiOverrides[key][field] = isNaN(val) ? 0 : val;
         draw();
       }));
-      $all('.bom-loi-label-input, .bom-mat-label-input', main).forEach(inp=>inp.addEventListener('input', e=>{
+      $all('.bom-loi-label-input', main).forEach(inp=>inp.addEventListener('input', e=>{
+        const dot = e.target.previousElementSibling;
+        if(dot && dot.classList.contains('bom-stripe-dot')) dot.style.cssText = bomRowSwatchStyle(e.target.dataset.coreCode, e.target.dataset.coreKe, colorLib) || 'display:none;';
+      }));
+      $all('.bom-mat-label-input', main).forEach(inp=>inp.addEventListener('input', e=>{
         const dot = e.target.previousElementSibling;
         if(dot && dot.classList.contains('bom-stripe-dot')) dot.style.cssText = bomStripeSwatchStyle(e.target.value, colorLib) || 'display:none;';
       }));
@@ -6655,7 +6666,7 @@ async function poGenerateLsxPlan(poId, po, explosion, congDoanList, calc, routin
         const nhan = (calc.label ? calc.label(r) : r.name) + (r.ke?' (kẻ)':'');
         await upsert(cd, r.code+(r.ke?'-KE':''), {
           ma_lsx: `${po.ma_po}-LOI-${r.code}${r.ke?'-KE':''}`,
-          mau_id: mauByCode[r.code]||null, ghi_chu: `Màu: ${nhan}`,
+          mau_id: mauByCode[r.code]||null, ghi_chu: `Màu: ${nhan}`, la_ke: !!r.ke,
           so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg,
         }, st.id);
       }
@@ -6666,7 +6677,7 @@ async function poGenerateLsxPlan(poId, po, explosion, congDoanList, calc, routin
         const kg = Math.round(r.tl*met*1000)/1000;
         await upsert(cd, r.pair, {
           ma_lsx: `${po.ma_po}-XD-${r.pair}`,
-          mau_id: mauByCode[r.pair]||mauByCode[r.a]||null, ghi_chu: `Cặp màu: ${r.a}+${r.b}`,
+          mau_id: mauByCode[r.pair]||mauByCode[r.a]||null, ghi_chu: `Cặp màu: ${r.a}+${r.b}`, la_ke: !!r.striped,
           so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg,
         }, st.id);
       }
@@ -7065,7 +7076,7 @@ async function planGenerateLsx(planId){
         const nhan = (calc.label ? calc.label(r) : r.name) + (r.ke?' (kẻ)':'');
         const subCode = r.code+(r.ke?'-KE':'');
         planned.push({ cd, subCode,
-          payloadExtra: { ma_lsx: `${po.ma_po}-${plan.plan_code}-LOI-${r.code}${r.ke?'-KE':''}`, mau_id: mauByCode[r.code]||null, ghi_chu: `Màu: ${nhan}`, so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg },
+          payloadExtra: { ma_lsx: `${po.ma_po}-${plan.plan_code}-LOI-${r.code}${r.ke?'-KE':''}`, mau_id: mauByCode[r.code]||null, ghi_chu: `Màu: ${nhan}`, la_ke: !!r.ke, so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg },
           stageId: d.bom_stage_id, sequence: d.sequence });
       }
     } else if(d.bom_stage_id==='xd' && calc && calc.xdRows && calc.xdRows.length){
@@ -7074,7 +7085,7 @@ async function planGenerateLsx(planId){
         const met = Math.round((d.quantity_output/n)*1000)/1000;
         const kg = Math.round(r.tl*met*1000)/1000;
         planned.push({ cd, subCode:r.pair,
-          payloadExtra: { ma_lsx: `${po.ma_po}-${plan.plan_code}-XD-${r.pair}`, mau_id: mauByCode[r.pair]||mauByCode[r.a]||null, ghi_chu: `Cặp màu: ${r.a}+${r.b}`, so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg },
+          payloadExtra: { ma_lsx: `${po.ma_po}-${plan.plan_code}-XD-${r.pair}`, mau_id: mauByCode[r.pair]||mauByCode[r.a]||null, ghi_chu: `Cặp màu: ${r.a}+${r.b}`, la_ke: !!r.striped, so_luong_ke_hoach: met, so_luong_ke_hoach_kg: kg },
           stageId: d.bom_stage_id, sequence: d.sequence });
       }
     } else {
@@ -9266,6 +9277,10 @@ async function bomLoadVatTuPriceMap(){
   return map;
 }
 // Nhận diện mã màu/kẻ trong 1 đoạn "Mã BTP" (VD "LOI/0.53BC/PE/GRWH") để hiển thị ô xem trước màu.
+// Dùng cho các nơi KHÔNG có sẵn dữ liệu cấu trúc (code/ke) — ví dụ tra cứu Mã BTP tự do ở nơi khác
+// trong hệ thống. Với các dòng Lõi trong BOM Builder (đã có r.code/r.ke rõ ràng), dùng
+// bomRowSwatchStyle() bên dưới thay vì hàm này — CHÍNH XÁC TUYỆT ĐỐI, không phụ thuộc chữ người
+// dùng gõ trong ô "Mã BTP tự đặt".
 // Chỉ xét ĐOẠN CUỐI (sau dấu "/" cuối cùng), so khớp với danh sách mã màu thật (colorLib/Master Data
 // > Màu, hoặc BOM_COLOR_FALLBACK nếu Master Data chưa có dữ liệu):
 //   - Khớp đúng 1 mã màu (VD "GR")                          -> ô màu ĐẶC 1 màu.
@@ -9286,6 +9301,23 @@ function bomStripeSwatchStyle(text, colorLib){
     if(a && b) return `display:inline-block;background:linear-gradient(135deg, ${a.hex} 0%, ${a.hex} 38%, ${b.hex} 38%, ${b.hex} 62%, ${a.hex} 62%, ${a.hex} 100%);`;
   }
   return null;
+}
+// Ô xem trước màu CHUẨN cho các dòng Lõi trong BOM Builder — lấy TRỰC TIẾP từ dữ liệu cấu trúc
+// (r.code = mã màu gốc, r.ke = có phải dòng kẻ hay không), KHÔNG phụ thuộc chữ người dùng gõ ở ô
+// "Mã BTP tự đặt". Nhờ vậy: dù người dùng đặt tên "Kẻ xanh dương", "BL-KE", hay bất kỳ chữ gì —
+// ô màu vẫn LUÔN hiện đúng, vì màu được suy ra từ đúng bản chất dữ liệu, không phải suy đoán qua text.
+// Quy ước: dòng đặc (ke=false) -> tô màu gốc. Dòng kẻ (ke=true) -> tô sọc chéo màu gốc + màu "WH"
+// (Trắng, mã WH trong Master Data > Màu) — đúng bản chất "dây kẻ = màu gốc phối sọc trắng".
+function bomRowSwatchStyle(code, ke, colorLib){
+  if(!code) return null;
+  const lib = (colorLib && colorLib.length) ? colorLib : BOM_COLOR_FALLBACK;
+  const byCode = {}; lib.forEach(c=>{ if(c.code) byCode[String(c.code).toUpperCase()] = c; });
+  const base = byCode[String(code).toUpperCase()];
+  if(!base) return null;
+  const isKe = (ke===true || ke==='true');
+  if(!isKe) return `display:inline-block;background:${base.hex};`;
+  const stripe = byCode['WH'] || { hex:'#F2EDE4' };
+  return `display:inline-block;background:linear-gradient(135deg, ${base.hex} 0%, ${base.hex} 38%, ${stripe.hex} 38%, ${stripe.hex} 62%, ${base.hex} 62%, ${base.hex} 100%);`;
 }
 function bomMatchVatTu(nvlName, vatTuMap){
   const key = nvlName.trim().toLowerCase();
