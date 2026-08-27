@@ -915,13 +915,18 @@ tbody tr.clickable{cursor:pointer;}
 .mdl-head .sub{font-size:12.5px;color:var(--mdl-dim);margin-top:2px;}
 
 /* Danh sách danh mục — grid card */
-.mdl .module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
-.mdl .module-card{background:var(--mdl-card);border:1px solid var(--mdl-border);border-radius:12px;padding:16px 17px;cursor:pointer;box-shadow:var(--mdl-shadow);transition:box-shadow .15s,transform .15s,border-color .15s;}
-.mdl .module-card:hover{border-color:var(--mdl-border-hi);box-shadow:0 4px 16px rgba(15,27,45,.08);transform:translateY(-2px);}
-.mdl .module-card .ic{width:38px;height:38px;border-radius:10px;background:rgba(21,101,216,.1);color:var(--mdl-primary);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
-.mdl .module-card .ic [data-lucide]{width:19px;height:19px;}
-.mdl .module-card .t{font-size:14px;font-weight:700;color:var(--mdl-text);margin-bottom:4px;}
-.mdl .module-card .d{font-size:11.5px;color:var(--mdl-faint);line-height:1.5;font-family:'JetBrains Mono',monospace;}
+.mdl .module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.mdl .module-card{position:relative;background:var(--mdl-card);border:1px solid var(--mdl-border);border-radius:14px;padding:20px 20px 18px;cursor:pointer;box-shadow:var(--mdl-shadow);transition:box-shadow .18s,transform .18s,border-color .18s;overflow:hidden;}
+.mdl .module-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-accent,#1565D8);opacity:0;transition:opacity .18s;}
+.mdl .module-card:hover::before{opacity:1;}
+.mdl .module-card:hover{border-color:var(--mdl-border-hi);box-shadow:0 10px 24px rgba(15,27,45,.12);transform:translateY(-3px);}
+.mdl .module-card .ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.mdl .module-card .ic [data-lucide]{width:20px;height:20px;}
+.mdl .module-card .t{font-size:14.5px;font-weight:700;color:var(--mdl-text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.mdl .module-card .t .arrow{color:var(--mdl-faint);opacity:0;transform:translateX(-4px);transition:all .18s;display:inline-flex;}
+.mdl .module-card .t .arrow [data-lucide]{width:15px;height:15px;}
+.mdl .module-card:hover .t .arrow{opacity:1;transform:translateX(0);color:var(--mdl-primary);}
+.mdl .module-card .d{display:inline-block;font-size:10.5px;color:var(--mdl-dim);line-height:1.5;font-family:'JetBrains Mono',monospace;background:#F1F5F9;border:1px solid var(--mdl-border);border-radius:6px;padding:3px 8px;}
 
 /* Trang CRUD chi tiết 1 danh mục — chỉ restyle, không đổi cấu trúc renderCrud() tạo ra */
 .mdl .page-head{margin-bottom:16px;}
@@ -4756,6 +4761,16 @@ const MD_ICON_MAP = {
   ca:'clock', mau:'palette', may:'wrench', cong_nhan:'hard-hat', vat_tu:'layers',
   btp:'tag', kho:'warehouse', san_pham:'package', loai_phe:'recycle', nguyen_nhan_phe:'circle-alert',
 };
+// Bảng màu riêng cho từng icon danh mục Master Data — mỗi danh mục 1 tông màu để dễ phân biệt/chuyên nghiệp hơn (không đổi hành vi, chỉ đổi giao diện).
+const MD_COLOR_MAP = {
+  don_vi_tinh:{bg:'#EEF2FF',fg:'#4F46E5'}, nha_cung_cap:{bg:'#EFF6FF',fg:'#2563EB'},
+  khach_hang:{bg:'#ECFEFF',fg:'#0891B2'}, cong_doan:{bg:'#F5F3FF',fg:'#7C3AED'},
+  ca:{bg:'#FFFBEB',fg:'#D97706'}, mau:{bg:'#FDF2F8',fg:'#DB2777'},
+  may:{bg:'#F1F5F9',fg:'#475569'}, cong_nhan:{bg:'#FFF7ED',fg:'#EA580C'},
+  vat_tu:{bg:'#F0FDFA',fg:'#0D9488'}, btp:{bg:'#FDF4FF',fg:'#A21CAF'},
+  kho:{bg:'#ECFDF5',fg:'#059669'}, san_pham:{bg:'#F0F9FF',fg:'#0284C7'},
+  loai_phe:{bg:'#FEF2F2',fg:'#DC2626'}, nguyen_nhan_phe:{bg:'#FEFCE8',fg:'#CA8A04'},
+};
 
 PAGES.md = (main, params)=>{
   document.getElementById('app-shell')?.classList.add('pcd-shell-light');
@@ -4792,7 +4807,9 @@ PAGES.md = (main, params)=>{
   Object.entries(MD_ENTITIES).forEach(([key,cfg])=>{
     const card = document.createElement('div');
     card.className = 'module-card';
-    card.innerHTML = `<div class="ic"><i data-lucide="${MD_ICON_MAP[key]||'folder'}"></i></div><div class="t">${esc(cfg.title)}</div><div class="d">${esc(cfg.path)}</div>`;
+    const col = MD_COLOR_MAP[key] || {bg:'rgba(21,101,216,.1)',fg:'var(--mdl-primary)'};
+    card.style.setProperty('--card-accent', col.fg);
+    card.innerHTML = `<div class="ic" style="background:${col.bg};color:${col.fg}"><i data-lucide="${MD_ICON_MAP[key]||'folder'}"></i></div><div class="t">${esc(cfg.title)}<span class="arrow"><i data-lucide="arrow-right"></i></span></div><div class="d">${esc(cfg.path)}</div>`;
     card.addEventListener('click', ()=>navigateTo('md', {entity:key}));
     grid.appendChild(card);
   });
