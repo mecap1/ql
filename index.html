@@ -3191,7 +3191,13 @@ function showApp(){
     badge.style.display = 'block';
     badge.innerHTML = `<span class="badge ok" style="width:100%;box-sizing:border-box;display:block;text-align:center;">● Đồng bộ thời gian thực — tất cả thiết bị</span>`;
   }
-  document.getElementById('backup-restore-btn').style.display = 'block';
+  // SECURITY PATCH (audit quyền truy cập dữ liệu) — nút Sao lưu/Khôi phục cho phép TẢI VỀ toàn bộ
+  // dữ liệu (kể cả users/password_hash, settings/api_key) và GHI ĐÈ toàn bộ dữ liệu hệ thống chỉ bằng
+  // 1 file .json bất kỳ. Trước bản vá này, nút hiển thị cho MỌI role đã đăng nhập (kể cả "thong_ke" —
+  // chỉ có quyền xem) — đây là lỗ hổng phân quyền thật ở tầng UI, không phải giới hạn kiến trúc, nên
+  // BẮT BUỘC phải sửa. Giữ nguyên tính năng, chỉ giới hạn hiển thị cho role "admin" (cùng mức với
+  // trang Cài đặt hệ thống). Không đổi vị trí, không đổi giao diện nút.
+  document.getElementById('backup-restore-btn').style.display = (currentUser.role === 'admin') ? 'block' : 'none';
   buildNav();
   navigateTo('dashboard');
   startRealtimeSync();
@@ -3206,6 +3212,10 @@ function showApp(){
    dụng được cho cả 2 chế độ (Lưu cục bộ và Firebase) — Firebase thì dùng để sao lưu phòng hờ.
    ------------------------------------------------------------------- */
 function backupExportData(){
+  // SECURITY PATCH — chặn lại ở tầng hàm xử lý (không chỉ ẩn nút), phòng trường hợp hàm bị gọi trực
+  // tiếp ngoài luồng UI chuẩn (VD: qua console). File xuất ra chứa TOÀN BỘ dữ liệu hệ thống, bao gồm
+  // users/password_hash và settings/api_key — chỉ admin được phép xuất.
+  if(!currentUser || currentUser.role !== 'admin'){ toast('⛔ Chỉ Quản trị viên (admin) mới có quyền Sao lưu dữ liệu.', 'err'); return; }
   let tree;
   if(dataMode==='local'){
     tree = localGetAll();
@@ -3225,6 +3235,10 @@ function backupExportData(){
   else { db.ref('').once('value').then(snap=>doExport(snap.val()||{})); }
 }
 function backupImportData(file){
+  // SECURITY PATCH — chặn lại ở tầng hàm xử lý (không chỉ ẩn nút), phòng trường hợp hàm bị gọi trực
+  // tiếp ngoài luồng UI chuẩn (VD: qua console). Đây là thao tác GHI ĐÈ TOÀN BỘ dữ liệu hệ thống —
+  // chỉ admin được phép khôi phục.
+  if(!currentUser || currentUser.role !== 'admin'){ toast('⛔ Chỉ Quản trị viên (admin) mới có quyền Khôi phục dữ liệu.', 'err'); return; }
   const reader = new FileReader();
   reader.onload = async ()=>{
     let parsed;
@@ -5183,6 +5197,33 @@ async function renderBomBuilderEngine(main, revisionId, spId, rev){
 
   function calc(){ return bomComputeAll(templateKey, colorCodes, loiLabels, colorLib, loiOverrides, matOverrides); }
 
+  // PROM FINAL — mục III (BOM DEMO/DEFAULT VALUES): trước khi cho phép "Đã duyệt"/"Đang dùng",
+  // kiểm tra người dùng đã nhập số THẬT thay cho hằng số DEMO (BOM_NUM_TEMPLATE/BOM_VACH_TL/...)
+  // ở tất cả các ô bắt buộc theo đúng template đang bật. Không tự suy đoán/tự điền — chỉ báo thiếu.
+  function bomFindMissingRealInputs(c, codes, loiOv, matOv){
+    const missing = [];
+    if(!c.skipLoi){
+      codes.forEach(code=>{
+        const ov = loiOv[code+'|false'];
+        if(!ov || ov.dong===undefined || ov.nhua===undefined || ov.od===undefined || ov.heso===undefined){
+          missing.push(`Lõi ${code}: chưa nhập đủ Đồng/Nhựa/OD/Hệ số thật (đang dùng số DEMO)`);
+        }
+        if(c.loiSelfCoated){
+          const ovKe = loiOv[code+'|true'];
+          if(!ovKe || ovKe.nhuaBoc===undefined) missing.push(`Lõi ${code} (tự bọc): chưa nhập Nhựa bọc PVC thật`);
+        }
+      });
+    }
+    if(c.vachOn && matOv.vach===undefined) missing.push('Vách: chưa nhập định mức Nhựa vách thật');
+    if(c.detOn && c.dongDetOn && matOv.dongDet===undefined) missing.push('Dệt: chưa nhập định mức Đồng dệt thật');
+    if(c.detOn && c.giayBacOn && matOv.giayBac===undefined) missing.push('Dệt: chưa nhập định mức Giấy bạc thật');
+    if((c.detOn || (c.bocOn && !c.skipLoi)) && matOv.chi===undefined) missing.push('Chỉ dệt/quấn: chưa nhập định mức thật');
+    if(c.bocOn && !c.loiSelfCoated && matOv.pvc===undefined) missing.push('Bọc: chưa nhập định mức Vỏ PVC thật');
+    if(c.skipLoi && matOv.dongTran===undefined) missing.push('Đồng trần (Bọc): chưa nhập định mức thật');
+    if(c.skipLoi && matOv.pvc===undefined) missing.push('Vỏ PVC (Bọc, không qua Lõi): chưa nhập định mức thật');
+    return missing;
+  }
+
   function resolveVatTu(name){
     const mp = nvlMap[name];
     if(mp && mp.vat_tu_id && vatTuById[mp.vat_tu_id]) return vatTuById[mp.vat_tu_id];
@@ -5408,6 +5449,15 @@ async function renderBomBuilderEngine(main, revisionId, spId, rev){
       const action = newStatus==='Ngừng dùng'?'OBSOLETE':(newStatus==='Đã duyệt'?'APPROVE':(newStatus==='Đang dùng'?'ACTIVATE':'EDIT'));
       // PHASE 7 — chuyển sang "Đã duyệt" là hành động APPROVE, cần quyền riêng (XLII).
       if(action==='APPROVE' && !can('approve')){ denyPermission('approve'); e.target.value = rev.trang_thai; return; }
+      // MUST FIX (PROM FINAL mục III): chặn duyệt/kích hoạt nếu BOM còn dùng số DEMO thay vì số thật.
+      if(action==='APPROVE' || action==='ACTIVATE'){
+        const missing = bomFindMissingRealInputs(calc(), colorCodes, loiOverrides, matOverrides);
+        if(missing.length){
+          toast('Không thể '+(action==='APPROVE'?'duyệt':'kích hoạt')+' — còn định mức DEMO chưa nhập số thật: '+missing.slice(0,4).join('; ')+(missing.length>4?` (+${missing.length-4} mục khác)`:''), 'err');
+          e.target.value = rev.trang_thai;
+          return;
+        }
+      }
       await db.ref('bom_revision/'+revisionId).update({ trang_thai:newStatus });
       await bomPushAudit(revisionId, action, 'Đổi trạng thái sang '+newStatus);
       rev.trang_thai = newStatus;
@@ -7001,7 +7051,8 @@ async function planConfirm(planId){
 // Huỷ Plan — chặn nếu đã có LSX của Plan này thực sự phát sinh sản lượng (bao_cong), để không xoá
 // mất lịch sử đã CONFIRMED/RELEASED khi đã chạy thật (mục XXXV "Không sửa lịch sử").
 async function planCancel(planId){
-  const snap = await db.ref('production_plan/'+planId).once('value');
+  const planRef = db.ref('production_plan/'+planId);
+  const snap = await planRef.once('value');
   const plan = snap.val();
   if(!plan) return { ok:false, message:'Không tìm thấy Production Plan.' };
   if(plan.status==='CANCELLED') return { ok:true };
@@ -7011,9 +7062,23 @@ async function planCancel(planId){
     const daSx = await tongSanXuatMet(id);
     if(daSx>0.0001) return { ok:false, message:`Không thể huỷ Plan — LSX thuộc Plan này đã ghi nhận sản lượng thực tế (${bomFmt(daSx,2)} m). Dùng Huỷ/Điều chỉnh LSX theo đúng luồng hiện có nếu cần sửa.` };
   }
-  await db.ref('production_plan/'+planId).update({ status:'CANCELLED', cancelled_at: Date.now() });
+  /* PROM #2 — FIX (mục X, XV): trước đây đọc plan.status rồi mới ghi (read-then-write) — nếu 2 request
+     Huỷ Plan này chạy gần như đồng thời, cả hai đều có thể đọc status khác 'CANCELLED' trước khi bên
+     kia kịp ghi, rồi CẢ HAI cùng gọi planReleaseQtyReservation() → mét đã giữ chỗ của Plan này bị TRẢ
+     LẠI 2 LẦN vào node đếm atomic (production_plan_active_qty), làm PO tưởng còn nhiều mét hơn thực tế
+     có thể lập Plan mới → có thể vượt quá metTP thật. FIX: claim atomic chuyển status -> 'CANCELLED'
+     ngay tại node Plan trước khi release — chỉ 1 trong nhiều request đồng thời có thể commit, request
+     đến sau coi như đã huỷ xong (idempotent, giống nhánh đầu hàm), KHÔNG gọi release lần 2. */
+  const claimRes = await planRef.transaction(cur=>{
+    if(!cur) return; // không tồn tại -> abort
+    if(cur.status==='CANCELLED') return; // abort -> đã bị huỷ bởi 1 request khác vừa lúc
+    return Object.assign({}, cur, { status:'CANCELLED', cancelled_at: Date.now() });
+  });
+  if(!claimRes.committed){
+    return { ok:true }; // đã bị huỷ bởi request khác cùng lúc -> coi như thành công (idempotent)
+  }
   // Trả lại chỗ (mét) đã giữ trong node đếm atomic — để các Plan khác của cùng PO có thể dùng lại
-  // phần mét vừa được giải phóng (mục 7/8 PROM 7.1).
+  // phần mét vừa được giải phóng (mục 7/8 PROM 7.1). Chỉ request đã thắng claim ở trên mới chạy tới đây.
   await planReleaseQtyReservation(plan.po_id, Number(plan.quantity_plan||0));
   await planAuditLog(planId, 'PRODUCTION_PLAN_CANCELLED', `Huỷ Plan ${plan.plan_code||planId}.`);
   return { ok:true };
@@ -7244,19 +7309,32 @@ async function poDuyetCapNVL(poId, revId, matRow, soLuongDuyet){
   const soLuong = Number(soLuongDuyet||0);
   if(!(soLuong>0)) return { error:'invalid_qty' };
   const key = `${poId}_${poNvlKey(matRow.vatTuId, matRow.source)}`;
-  const snap = await db.ref('yeu_cau_cap_nvl/'+key).once('value');
-  const exist = snap.val();
-  const daCapCu = exist ? Number(exist.so_luong_da_cap||0) : 0;
-  const daCapMoi = daCapCu + soLuong;
-  const nhuCau = exist ? Number(exist.nhu_cau_kg||matRow.needKg||0) : Number(matRow.needKg||0);
-  const conThieu = Math.max(0, Math.round((nhuCau - daCapMoi)*1000)/1000);
-  await db.ref('yeu_cau_cap_nvl/'+key).set({
-    po_id: poId, bom_revision_id: exist?exist.bom_revision_id:revId, material_id: matRow.vatTuId, cong_doan: matRow.source,
-    nhu_cau_kg: Math.round(nhuCau*1000)/1000, so_luong_can_cap: conThieu, so_luong_da_cap: Math.round(daCapMoi*1000)/1000,
-    trang_thai: conThieu<=0.0001 ? 'Đã cấp đủ' : 'Đã cấp một phần',
-    created_at: exist?exist.created_at:Date.now(), updated_at: Date.now(),
-    created_by: exist?exist.created_by:(currentUser?currentUser.full_name:''),
+  /* ================================================================
+     PROM #2 — FIX (mục II.13 "Các thao tác approve", XV): trước đây ĐỌC so_luong_da_cap rồi `.set()`
+     lại TOÀN BỘ node — read-then-write không atomic (khác hẳn "double-click" thông thường: đây là
+     LOST UPDATE thật). Nếu 2 người/2 tab cùng duyệt cấp thêm cho ĐÚNG 1 phiếu yeu_cau_cap_nvl gần như
+     đồng thời (VD: người A duyệt cấp 100kg, người B duyệt cấp 50kg cùng lúc), cả hai đều đọc cùng
+     so_luong_da_cap CŨ trước khi bên kia kịp ghi → ai `.set()` sau sẽ GHI ĐÈ toàn bộ node, XOÁ MẤT
+     phần duyệt cấp của người ghi trước — dù `nvl_cap_phat_log` vẫn có đủ 2 dòng nhật ký (audit log
+     không còn khớp với số tổng hợp `so_luong_da_cap`, gây nhầm PO đã được cấp đủ trong khi thực tế
+     thiếu). FIX: chuyển sang `transaction()` atomic ngay trên node phiếu — đọc giá trị hiện tại + cộng
+     dồn + ghi diễn ra trong CÙNG 1 bước nguyên tử của Firebase, không đổi field/schema/hành vi hợp lệ. */
+  const ref = db.ref('yeu_cau_cap_nvl/'+key);
+  let daCapMoi = 0, conThieu = 0;
+  const res = await ref.transaction(cur=>{
+    const daCapCu = cur ? Number(cur.so_luong_da_cap||0) : 0;
+    daCapMoi = Math.round((daCapCu + soLuong)*1000)/1000;
+    const nhuCau = cur ? Number(cur.nhu_cau_kg||matRow.needKg||0) : Number(matRow.needKg||0);
+    conThieu = Math.max(0, Math.round((nhuCau - daCapMoi)*1000)/1000);
+    return {
+      po_id: poId, bom_revision_id: cur?cur.bom_revision_id:revId, material_id: matRow.vatTuId, cong_doan: matRow.source,
+      nhu_cau_kg: Math.round(nhuCau*1000)/1000, so_luong_can_cap: conThieu, so_luong_da_cap: daCapMoi,
+      trang_thai: conThieu<=0.0001 ? 'Đã cấp đủ' : 'Đã cấp một phần',
+      created_at: cur?cur.created_at:Date.now(), updated_at: Date.now(),
+      created_by: cur?cur.created_by:(currentUser?currentUser.full_name:''),
+    };
   });
+  if(!res.committed) throw new Error('Không cập nhật được phiếu duyệt cấp NVL (transaction thất bại) — vui lòng thử lại.');
   // Nhật ký duyệt cấp — tách bạch hoàn toàn khỏi sổ kho (kho_giao_dich)
   await db.ref('nvl_cap_phat_log').push({
     po_id: poId, material_id: matRow.vatTuId, cong_doan: matRow.source, so_luong: soLuong,
@@ -10277,7 +10355,7 @@ async function lotResolveTenBtpTuBom(po, congDoan, mau){
 }
 
 async function lotCreateFromGhiNhanSX(payload){
-  const { congDoanId, poId, lsxId, mayId, mauId, caId, congNhanId, kg, met, nguonCan, nguoiThucHien, khoBtpId, ngaySanXuat, ghiChu, pcsNhap, batchId, allocations, consumedScanKeys } = payload;
+  const { congDoanId, poId, lsxId, mayId, mauId, caId, congNhanId, kg, met, nguonCan, nguoiThucHien, khoBtpId, ngaySanXuat, ghiChu, pcsNhap, batchId, allocations, consumedScanKeys, bypassTrinhTu } = payload;
   if(!congDoanId) throw new Error('Thiếu công đoạn.');
   if(!lsxId) throw new Error('Thiếu LSX.');
   if(!khoBtpId) throw new Error('Thiếu kho BTP nhận LOT.');
@@ -10374,7 +10452,7 @@ async function lotCreateFromGhiNhanSX(payload){
   });
   updates['lot_audit_log/'+auditKey] = {
     lot_id:lotKey, action:'CREATE',
-    detail:`Tạo LOT ${maLot} — ${fmtNum(kgVal)}kg${metVal!=null?' / '+fmtNum(metVal)+'m':''}`+(allocLines.length>1?` — phân bổ ${allocLines.length} PO`:''),
+    detail:`Tạo LOT ${maLot} — ${fmtNum(kgVal)}kg${metVal!=null?' / '+fmtNum(metVal)+'m':''}`+(allocLines.length>1?` — phân bổ ${allocLines.length} PO`:'')+(bypassTrinhTu?` — ⚠ BỎ QUA TRÌNH TỰ CÔNG ĐOẠN (do ${nguoi})`:''),
     user:nguoi, at:Date.now(),
   };
   // SCAN-TO-CONSUME: gán (các) bản ghi "Xuất dùng SX qua quét QR" đã chọn ở form cho đúng LOT
@@ -10631,30 +10709,63 @@ async function batchUpdateAllocations(batchId, newRows, candidateMap, meta){
   for(const line of auditLines){ await batchAuditLog(batchId, line.action, line.detail); }
 }
 
+/* ================================================================
+   PROM #2 — FIX (mục IX, XV Test M, XVIII): batchStart/batchComplete/batchCancel trước đây ĐỌC
+   trang_thai rồi mới ghi (read-then-write) — không atomic. Hai request gần như đồng thời (double-
+   click nút "Bắt đầu"/"Kết thúc"/"Huỷ", hoặc 2 tab/2 người cùng thao tác 1 Batch) đều có thể ĐỌC
+   thấy cùng 1 trang_thai hợp lệ trước khi bên kia kịp ghi, khiến cả 2 cùng PASS validation rồi cùng
+   ghi đè (double audit log, hoặc tệ hơn: A→CANCEL và B→COMPLETE cùng lúc thì trạng thái cuối phụ
+   thuộc ngẫu nhiên vào ai ghi sau — đúng rủi ro mục IX đã cảnh báo).
+   FIX: dùng db.ref(...).transaction() thật của Firebase (cùng pattern đã có sẵn trong file, không
+   phát minh cơ chế mới) để "giữ chỗ" đổi trạng thái ATOMIC ngay tại chính node Batch — chỉ 1 trong
+   nhiều request đồng thời có thể commit; các request còn lại nhận lỗi rõ ràng thay vì âm thầm ghi
+   đè. Không đổi field/enum/kiến trúc, không đổi UI, không đổi hành vi hợp lệ hiện có. */
 async function batchStart(batchId){
-  const s = await db.ref('production_batch/'+batchId).once('value');
-  const b = s.val();
-  if(!b) throw new Error('Không tìm thấy Batch.');
-  if(b.trang_thai!=='DRAFT' && b.trang_thai!=='PLANNED') throw new Error('Chỉ Batch ở trạng thái Nháp/Đã lên kế hoạch mới Bắt đầu được.');
-  await db.ref('production_batch/'+batchId).update({ trang_thai:'RUNNING', updated_at:Date.now() });
+  const bRef = db.ref('production_batch/'+batchId);
+  const res = await bRef.transaction(cur=>{
+    if(!cur) return; // không tồn tại -> abort, xử lý thông báo ở dưới
+    if(cur.trang_thai!=='DRAFT' && cur.trang_thai!=='PLANNED') return; // abort -> đã bị đổi trạng thái
+    return Object.assign({}, cur, { trang_thai:'RUNNING', updated_at:Date.now() });
+  });
+  if(!res.committed){
+    const s = await bRef.once('value');
+    if(!s.val()) throw new Error('Không tìm thấy Batch.');
+    throw new Error('Chỉ Batch ở trạng thái Nháp/Đã lên kế hoạch mới Bắt đầu được (có thể vừa bị người khác/thao tác khác đổi trạng thái).');
+  }
+  const b = res.snapshot.val();
   await batchAuditLog(batchId, 'START_BATCH', `Bắt đầu chạy Batch ${b.ma_batch}.`);
 }
 async function batchComplete(batchId){
-  const s = await db.ref('production_batch/'+batchId).once('value');
-  const b = s.val();
-  if(!b) throw new Error('Không tìm thấy Batch.');
-  if(b.trang_thai!=='RUNNING') throw new Error('Chỉ Batch đang Chạy mới Kết thúc được.');
-  await db.ref('production_batch/'+batchId).update({ trang_thai:'COMPLETED', updated_at:Date.now() });
+  const bRef = db.ref('production_batch/'+batchId);
+  const res = await bRef.transaction(cur=>{
+    if(!cur) return;
+    if(cur.trang_thai!=='RUNNING') return; // abort -> đã bị đổi trạng thái
+    return Object.assign({}, cur, { trang_thai:'COMPLETED', updated_at:Date.now() });
+  });
+  if(!res.committed){
+    const s = await bRef.once('value');
+    if(!s.val()) throw new Error('Không tìm thấy Batch.');
+    throw new Error('Chỉ Batch đang Chạy mới Kết thúc được (có thể vừa bị người khác/thao tác khác đổi trạng thái).');
+  }
+  const b = res.snapshot.val();
   await batchAuditLog(batchId, 'COMPLETE_BATCH', `Kết thúc Batch ${b.ma_batch} — đã chạy ${fmtNum(b.so_luong_da_chay)} / ${fmtNum(b.so_luong_ke_hoach)} m.`);
 }
 async function batchCancel(batchId, lyDo){
   // PHẦN 12 (XVIII) — Huỷ Batch là thao tác nguy hiểm, cần permission riêng (cancel), không chỉ ẩn nút UI.
   if(!can('cancel')) throw new Error('Bạn không có quyền huỷ Batch (permission: cancel).');
-  const s = await db.ref('production_batch/'+batchId).once('value');
-  const b = s.val();
-  if(!b) throw new Error('Không tìm thấy Batch.');
-  if(b.trang_thai==='COMPLETED' || b.trang_thai==='CANCELLED') throw new Error('Batch đã '+BATCH_TRANG_THAI_LABEL[b.trang_thai]+' — không thể huỷ.');
-  await db.ref('production_batch/'+batchId).update({ trang_thai:'CANCELLED', updated_at:Date.now(), huy_ly_do: lyDo||'' });
+  const bRef = db.ref('production_batch/'+batchId);
+  const res = await bRef.transaction(cur=>{
+    if(!cur) return;
+    if(cur.trang_thai==='COMPLETED' || cur.trang_thai==='CANCELLED') return; // abort -> đã ở trạng thái cuối
+    return Object.assign({}, cur, { trang_thai:'CANCELLED', updated_at:Date.now(), huy_ly_do: lyDo||'' });
+  });
+  if(!res.committed){
+    const s = await bRef.once('value');
+    const b = s.val();
+    if(!b) throw new Error('Không tìm thấy Batch.');
+    throw new Error('Batch đã '+BATCH_TRANG_THAI_LABEL[b.trang_thai]+' — không thể huỷ.');
+  }
+  const b = res.snapshot.val();
   await batchAuditLog(batchId, 'CANCEL_BATCH', `Huỷ Batch ${b.ma_batch}. Lý do: ${lyDo||'(không ghi)'}`);
 }
 
@@ -11106,7 +11217,14 @@ async function openBatchFormModal(existingBatch, onSaved){
   }
 
   if(editable){
-    document.getElementById('batch-form-save').addEventListener('click', async ()=>{
+    // PROM #2 — FIX (mục IV, XIII): nút Lưu Batch trước đây KHÔNG disable khi bấm — double-click có
+    // thể gọi batchCreate()/batchUpdateAllocations() 2 lần trước khi modal kịp đóng. batchCreate tạo
+    // Batch bằng push() key mới mỗi lần gọi → double-click sẽ tạo ra 2 Batch trùng dữ liệu thật sự
+    // (không chỉ 1 lỗi UI). FIX: khoá NGAY khi bấm (trước bất kỳ await nào), đúng mẫu guardSubmit.
+    const saveBtn = document.getElementById('batch-form-save');
+    saveBtn.addEventListener('click', async ()=>{
+      if(saveBtn.disabled) return;
+      saveBtn.disabled = true;
       const warnEl = document.getElementById('batch-form-warn');
       const rows = Object.values(selectedRows);
       try{
@@ -11138,6 +11256,8 @@ async function openBatchFormModal(existingBatch, onSaved){
         if(onSaved) onSaved();
       }catch(err){
         warnEl.innerHTML = `<div class="err-msg">⛔ ${esc(err.message||String(err))}</div>`;
+      }finally{
+        saveBtn.disabled = false;
       }
     });
   }
@@ -11195,16 +11315,37 @@ async function openBatchDetailModal(batchId, onChanged){
   $all('[data-view-lot-alloc]').forEach(btn=>btn.addEventListener('click', ()=>openLotAllocationModal(btn.dataset.viewLotAlloc, ()=>openBatchDetailModal(batchId, onChanged))));
   const editBtn = document.getElementById('bd-edit');
   if(editBtn) editBtn.addEventListener('click', ()=>openBatchFormModal(batch, onChanged));
+  // PROM #2 — FIX (mục IV, XIII): 3 nút này TRƯỚC ĐÂY không disable ngay khi bấm — double-click có
+  // thể gọi batchStart/batchComplete/batchCancel 2 lần trước khi modal kịp đóng. Lớp Firebase
+  // transaction() ở batchStart/Complete/Cancel (trên) đã chặn được double-write thật sự, nhưng vẫn
+  // thêm khoá UX Lớp 1 ở đây (disable NGAY trước await, đúng mẫu guardSubmit) để tránh gọi hàm 2 lần
+  // không cần thiết và tránh 2 thông báo lỗi/loading nhấp nháy cho người dùng.
   const startBtn = document.getElementById('bd-start');
-  if(startBtn) startBtn.addEventListener('click', async ()=>{ try{ await batchStart(batchId); toast('Đã bắt đầu Batch','ok'); closeModal(); if(onChanged) onChanged(); }catch(err){ toast(err.message,'err'); } });
+  if(startBtn) startBtn.addEventListener('click', async ()=>{
+    if(startBtn.disabled) return; startBtn.disabled = true;
+    try{ await batchStart(batchId); toast('Đã bắt đầu Batch','ok'); closeModal(); if(onChanged) onChanged(); }
+    catch(err){ toast(err.message,'err'); }
+    finally{ startBtn.disabled = false; }
+  });
   const completeBtn = document.getElementById('bd-complete');
-  if(completeBtn) completeBtn.addEventListener('click', async ()=>{ if(!confirm('Kết thúc Batch này?')) return; try{ await batchComplete(batchId); toast('Đã kết thúc Batch','ok'); closeModal(); if(onChanged) onChanged(); }catch(err){ toast(err.message,'err'); } });
+  if(completeBtn) completeBtn.addEventListener('click', async ()=>{
+    if(completeBtn.disabled) return;
+    if(!confirm('Kết thúc Batch này?')) return;
+    completeBtn.disabled = true;
+    try{ await batchComplete(batchId); toast('Đã kết thúc Batch','ok'); closeModal(); if(onChanged) onChanged(); }
+    catch(err){ toast(err.message,'err'); }
+    finally{ completeBtn.disabled = false; }
+  });
   const cancelBtn = document.getElementById('bd-cancel');
   if(cancelBtn) cancelBtn.addEventListener('click', async ()=>{
+    if(cancelBtn.disabled) return;
     if(!can('cancel')){ denyPermission('cancel'); return; }
     const lyDo = prompt('Lý do huỷ Batch '+batch.ma_batch+':');
     if(lyDo===null) return;
-    try{ await batchCancel(batchId, lyDo); toast('Đã huỷ Batch','ok'); closeModal(); if(onChanged) onChanged(); }catch(err){ toast(err.message,'err'); }
+    cancelBtn.disabled = true;
+    try{ await batchCancel(batchId, lyDo); toast('Đã huỷ Batch','ok'); closeModal(); if(onChanged) onChanged(); }
+    catch(err){ toast(err.message,'err'); }
+    finally{ cancelBtn.disabled = false; }
   });
 }
 
@@ -11762,6 +11903,14 @@ function renderGnsxModalForm(lsxId, poId, lsx, refs, onSaved, closeModalFn){
   document.getElementById('gnsx-advanced-toggle').addEventListener('click', ()=>{
     document.getElementById('gnsx-advanced').classList.toggle('open');
   });
+  // MUST FIX (hard sequence-lock phải là HARD): checkbox "bỏ qua trình tự" trước đây không bị khoá
+  // theo quyền — mọi role (kể cả van_hanh/thong_ke) đều tự bấm bỏ qua được, biến "hard-lock" thành
+  // tuỳ chọn. Chỉ role có quyền 'approve' (admin/quan_ly) mới được phép bỏ qua, đúng với cảnh báo UI
+  // sẵn có "chỉ sử dụng khi có yêu cầu của quản lý".
+  if(!can('approve')){
+    const boquaBox = document.getElementById('gnsx-boqua');
+    if(boquaBox){ boquaBox.disabled = true; boquaBox.parentElement.title = 'Chỉ Quản lý/Admin mới có quyền bỏ qua trình tự công đoạn.'; }
+  }
 
   // Nạp danh sách Batch đang gom đúng LSX này (chỉ PLANNED/RUNNING) — không bắt buộc chọn.
   // Không đổi hành vi Ghi nhận SX hiện tại nếu người dùng không chọn batch nào.
@@ -11971,7 +12120,13 @@ function renderGnsxModalForm(lsxId, poId, lsx, refs, onSaved, closeModalFn){
     const submitBtn = document.getElementById('gnsx-submit-btn');
     if(submitBtn){ if(submitBtn.disabled) return; submitBtn.disabled = true; }
 
-    const boQua = fd.get('bo_qua_kiem_tra')==='on';
+    const boQuaRequested = fd.get('bo_qua_kiem_tra')==='on';
+    if(boQuaRequested && !can('approve')){
+      warnEl.innerHTML = `<div class="err-msg"><i data-lucide="ban"></i>Vai trò "${esc(ROLE_LABELS[currentUser.role]||currentUser.role)}" không có quyền bỏ qua trình tự công đoạn — cần Quản lý/Admin.</div>`; gnsxRenderIcons();
+      if(submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    const boQua = boQuaRequested && can('approve');
     if(!boQua){
       const { hopLe, thongBao } = await checkHardSequenceLock(lsxId);
       if(!hopLe){
@@ -12000,7 +12155,7 @@ function renderGnsxModalForm(lsxId, poId, lsx, refs, onSaved, closeModalFn){
         congDoanId: lsx.cong_doan_id, poId, lsxId, mayId: fd.get('may_id')||null, mauId: lsx.mau_id||null,
         caId: fd.get('ca_id')||null, congNhanId: fd.get('cong_nhan_id')||null, kg, met, nguonCan, nguoiThucHien,
         khoBtpId: refs.khoAuto.__id, ngaySanXuat, ghiChu: fd.get('ghi_chu')||'',
-        pcsNhap: fd.get('dvt_pcs_nhap')||0, batchId: batchIdChon, allocations,
+        pcsNhap: fd.get('dvt_pcs_nhap')||0, batchId: batchIdChon, allocations, bypassTrinhTu: boQua,
       });
 
       // ---- Cập nhật tiến độ Production Batch (nếu LOT này thuộc 1 batch) ----
@@ -12131,11 +12286,33 @@ async function voidLot(lotId, lyDo){
   // PHẦN 12 (XVIII) — kiểm tra permission ở đúng lớp ghi dữ liệu, không chỉ ẩn nút UI: nếu hàm này
   // được gọi từ bất kỳ nơi nào khác trong tương lai mà quên gate ở UI, vẫn bị chặn ở đây.
   if(!can('cancel')) throw new Error('Bạn không có quyền huỷ LOT (permission: cancel).');
-  const lotSnap = await db.ref('production_lot/'+lotId).once('value');
-  const lot = lotSnap.val();
-  if(!lot) throw new Error('Không tìm thấy LOT.');
-  if(lot.trang_thai==='HUY') throw new Error('LOT này đã bị huỷ trước đó.');
 
+  /* ================================================================
+     PROM #2 — FIX (mục VII, IX, XV Test I): trước đây voidLot() ĐỌC lot.trang_thai rồi mới ghi
+     (read-then-write) — không atomic. Nếu 2 request huỷ CÙNG 1 LOT xảy ra gần như đồng thời (double-
+     click, 2 tab, hoặc quét trùng), CẢ HAI đều có thể đọc thấy trang_thai vẫn là 'AVAILABLE' trước
+     khi bên kia kịp ghi 'HUY' → cả hai cùng đi tiếp, cùng tạo giao dịch 'Điều chỉnh' bù trừ NGƯỢC
+     giá trị gốc, cùng hoàn tác tiến độ Batch → tồn kho bị bù trừ 2 LẦN (double reversal) dù chỉ có 1
+     LOT bị huỷ thật.
+     FIX: "khoá" bằng chính Firebase transaction() trên field trang_thai — chỉ request nào chuyển được
+     AVAILABLE -> HUY ATOMIC mới được tiếp tục xử lý reversal bên dưới; request đến sau nhận lỗi ngay,
+     không đụng gì tới sổ cái. Nếu các bước ghi reversal SAU claim bị lỗi giữa chừng, trả trang_thai
+     lại 'AVAILABLE' (rollback claim) để không kẹt LOT ở trạng thái HUY "treo" mà chưa thực sự hoàn
+     tác xong tồn kho — người dùng có thể thử huỷ lại. Không đổi field/enum, không đổi UI. */
+  const lotRef = db.ref('production_lot/'+lotId);
+  const claimRes = await lotRef.transaction(cur=>{
+    if(!cur) return; // không tồn tại -> abort, xử lý thông báo ở dưới
+    if(cur.trang_thai==='HUY') return; // abort -> đã bị huỷ (hoặc đang được huỷ bởi 1 request khác)
+    return Object.assign({}, cur, { trang_thai:'HUY' });
+  });
+  if(!claimRes.committed){
+    const s = await lotRef.once('value');
+    if(!s.val()) throw new Error('Không tìm thấy LOT.');
+    throw new Error('LOT này đã bị huỷ trước đó (có thể vừa được huỷ bởi 1 thao tác/người khác cùng lúc).');
+  }
+  const lot = claimRes.snapshot.val();
+
+  try{
   const [ledgerSnap, baoCongSnap, lotAllocSnap] = await Promise.all([
     db.ref('kho_giao_dich').orderByChild('lot_id').equalTo(lotId).once('value'),
     db.ref('bao_cong').orderByChild('lot_id').equalTo(lotId).once('value'),
@@ -12235,6 +12412,23 @@ async function voidLot(lotId, lyDo){
   };
 
   await db.ref().update(updates);
+  }catch(err){
+    // PROM #2 — FIX: bất kỳ lỗi nào TRƯỚC KHI update(updates) commit (đọc ledger/bao_cong/allocation,
+    // đọc Batch, hoặc chính update() thất bại) → chưa có bất kỳ dữ liệu reversal nào thực sự tồn tại,
+    // AN TOÀN để trả trang_thai LOT lại 'AVAILABLE' (mở khoá claim atomic ở đầu hàm), tránh kẹt LOT ở
+    // trạng thái HUY "treo" mà không có gì được hoàn tác — người dùng có thể thử huỷ lại. Nếu update()
+    // ĐÃ commit thành công, việc huỷ coi như HOÀN TẤT (xem dưới), các bước sau đó là best-effort,
+    // KHÔNG được phép rollback ngược lại trang_thai (nếu không sẽ "un-void" 1 LOT trong khi sổ cái
+    // reversal đã ghi thật — lệch dữ liệu).
+    await lotRef.transaction(cur=>{
+      if(!cur || cur.trang_thai!=='HUY') return; // đã đổi bởi thao tác khác hoặc không còn tồn tại -> để nguyên
+      return Object.assign({}, cur, { trang_thai:'AVAILABLE', huy_at:null, huy_by:null, huy_ly_do:null });
+    }).catch(()=>{});
+    throw err;
+  }
+  // Từ đây trở đi, sổ cái/allocation đã ghi xong — việc huỷ LOT coi như HOÀN TẤT (bất biến, không
+  // rollback trang_thai nữa dù bước nào dưới đây có lỗi). Giữ nguyên hành vi cũ (catch(()=>{}) /
+  // best-effort) — chỉ khác ở chỗ claim trang_thai giờ đã atomic ngay từ đầu hàm.
   // PHASE 8.5 — đảo ngược cache atomic tương ứng với các giao dịch Điều chỉnh bù trừ ở trên.
   await Promise.all(cacheReversals.map(r=>inventoryAdjustBalanceAtomic(r.khoId, r.loaiHang, r.itemId, r.delta).catch(()=>{})));
   if(lot.batch_id) await batchAuditLog(lot.batch_id, 'VOID_ALLOCATION', `Huỷ LOT ${lot.ma_lot} — hoàn tác tiến độ Batch. Lý do: ${lyDo}`);
@@ -12246,10 +12440,33 @@ async function voidLot(lotId, lyDo){
 async function lotReallocate(lotId, newLines, lyDo){
   // PHẦN 12 (XVIII) — kiểm tra permission ở đúng lớp ghi dữ liệu (không chỉ ẩn nút UI).
   if(!can('reverse')) throw new Error('Bạn không có quyền sửa/đảo phân bổ LOT (permission: reverse).');
-  const lotSnap = await db.ref('production_lot/'+lotId).once('value');
-  const lot = lotSnap.val();
-  if(!lot) throw new Error('Không tìm thấy LOT.');
-  if(lot.trang_thai!=='AVAILABLE') throw new Error('LOT đã '+(lot.trang_thai==='HUY'?'bị huỷ':'khoá')+' — không thể sửa phân bổ.');
+
+  /* ================================================================
+     PROM #2 — FIX (mục VIII, XV Test): trước đây đọc lot.trang_thai!=='AVAILABLE' rồi mới ghi
+     (read-then-write) — không atomic. LOT vẫn phải Ở LẠI 'AVAILABLE' sau khi sửa phân bổ (khác voidLot
+     chuyển sang 'HUY'), nên KHÔNG thể dùng trang_thai làm khoá claim như voidLot/batchStart. Thay vào
+     đó thêm 1 field khoá tạm thời RẤT NHỎ, THUẦN CỘNG THÊM (`_realloc_lock`, không đổi/thay thế field
+     nào hiện có) claim bằng transaction() atomic ngay trên chính node LOT: nếu 2 request sửa phân bổ
+     (hoặc 1 sửa phân bổ + 1 huỷ LOT) chạy đồng thời trên CÙNG 1 LOT, chỉ 1 request giành được khoá —
+     request kia nhận lỗi rõ ràng ngay, không tạo bao_cong bù trừ / allocation trùng lặp. Khoá luôn được
+     giải phóng ở cuối (thành công hoặc lỗi). */
+  const lotRef = db.ref('production_lot/'+lotId);
+  const claimRes = await lotRef.transaction(cur=>{
+    if(!cur) return; // không tồn tại -> abort
+    if(cur.trang_thai!=='AVAILABLE') return; // abort -> đã bị huỷ/khoá (voidLot đang/đã chạy)
+    if(cur._realloc_lock) return; // abort -> đang có 1 lần sửa phân bổ khác chạy trên chính LOT này
+    return Object.assign({}, cur, { _realloc_lock: Date.now() });
+  });
+  if(!claimRes.committed){
+    const s = await lotRef.once('value');
+    const l = s.val();
+    if(!l) throw new Error('Không tìm thấy LOT.');
+    if(l.trang_thai!=='AVAILABLE') throw new Error('LOT đã '+(l.trang_thai==='HUY'?'bị huỷ':'khoá')+' — không thể sửa phân bổ.');
+    throw new Error('LOT này đang được sửa phân bổ bởi 1 thao tác khác cùng lúc — vui lòng thử lại sau giây lát.');
+  }
+  const lot = claimRes.snapshot.val();
+  try{
+
   if(!lyDo || !lyDo.trim()) throw new Error('Phải nhập lý do sửa phân bổ (bắt buộc — phục vụ audit).');
 
   const [oldAllocSnap, oldBaoCongSnap] = await Promise.all([
@@ -12361,6 +12578,22 @@ async function lotReallocate(lotId, newLines, lyDo){
 
   await db.ref().update(updates);
   if(lot.batch_id) await batchAuditLog(lot.batch_id, 'REALLOCATE', `Sửa phân bổ LOT ${lot.ma_lot}. Lý do: ${lyDo}`);
+
+  }catch(err){
+    // PROM #2 — FIX: bất kỳ lỗi nào (validate, đọc dữ liệu, hoặc update() thất bại) đều phải MỞ KHOÁ
+    // lại `_realloc_lock` để LOT không bị kẹt "đang sửa phân bổ" mãi mãi, cho phép thử lại. update()
+    // ở trên là bước ghi CUỐI CÙNG của hàm nên nếu nó đã commit thành công thì không rơi vào catch này.
+    await lotRef.transaction(cur=>{
+      if(!cur || !cur._realloc_lock) return; // đã đổi bởi thao tác khác hoặc không còn tồn tại -> để nguyên
+      const c = Object.assign({}, cur); delete c._realloc_lock; return c;
+    }).catch(()=>{});
+    throw err;
+  }
+  // Thành công — giải phóng khoá tạm thời (LOT vẫn giữ nguyên trang_thai='AVAILABLE' như trước giờ).
+  await lotRef.transaction(cur=>{
+    if(!cur || !cur._realloc_lock) return;
+    const c = Object.assign({}, cur); delete c._realloc_lock; return c;
+  }).catch(()=>{});
 }
 
 // Modal "Xem / Sửa phân bổ LOT" (mục 20, 21) — mở từ lịch sử LOT hoặc từ chi tiết Batch.
@@ -12423,7 +12656,10 @@ async function openLotAllocationModal(lotId, onChanged){
       let tong=0; inputs.forEach(x=>tong+=Number(x.value||0));
       document.getElementById('la-edit-sum').textContent = `Đã nhập: ${fmtNum(tong)} m / ${fmtNum(lot.met)} m`;
     }));
-    document.getElementById('la-edit-save').addEventListener('click', async ()=>{
+    const saveEditBtn = document.getElementById('la-edit-save');
+    saveEditBtn.addEventListener('click', async ()=>{
+      if(saveEditBtn.disabled) return;
+      saveEditBtn.disabled = true;
       const lyDo = document.getElementById('la-edit-reason').value;
       const lines = inputs.map(i=>({lsxId:i.dataset.lsx, poId:i.dataset.po, met:Number(i.value||0)})).filter(l=>l.met>0.0001);
       try{
@@ -12431,7 +12667,7 @@ async function openLotAllocationModal(lotId, onChanged){
         toast('Đã cập nhật phân bổ LOT','ok');
         closeModal();
         if(onChanged) onChanged();
-      }catch(err){ toast(err.message,'err'); }
+      }catch(err){ toast(err.message,'err'); saveEditBtn.disabled = false; }
     });
   });
 }
@@ -12442,12 +12678,14 @@ async function openLotAllocationModal(lotId, onChanged){
    (2) sau này QR/cân chỉ cần tạo đúng record này, không phải sửa lại màn hình báo công. */
 PAGES.ghinhanphe = async (main)=>{
   document.getElementById('app-shell')?.classList.add('pcd-shell-light');
-  const [poSnap, cdSnap, loaiPheSnap, nnSnap, khSnap, khoSnap] = await Promise.all([
+  const [poSnap, cdSnap, loaiPheSnap, nnSnap, khSnap, khoSnap, batchSnap, batchAllocSnap] = await Promise.all([
     db.ref('po').once('value'), db.ref('master/cong_doan').once('value'),
     db.ref('master/loai_phe').once('value'), db.ref('master/nguyen_nhan_phe').once('value'),
     db.ref('master/khach_hang').once('value'), db.ref('master/kho').once('value'),
+    db.ref('production_batch').once('value'), db.ref('production_batch_allocation').once('value'),
   ]);
   const poList = []; poSnap.forEach(ch=>{ const v=ch.val(); if(v.is_active!==false) poList.push({__id:ch.key,...v}); });
+  const poMap = {}; poList.forEach(p=>poMap[p.__id]=p);
   const cdList = []; cdSnap.forEach(ch=>{ const v=ch.val(); if(v.is_active!==false) cdList.push({__id:ch.key,...v}); });
   cdList.sort((a,b)=>(a.thu_tu||0)-(b.thu_tu||0));
   const loaiPheList = []; loaiPheSnap.forEach(ch=>{ const v=ch.val(); if(v.is_active!==false) loaiPheList.push({__id:ch.key,...v}); });
@@ -12457,6 +12695,50 @@ PAGES.ghinhanphe = async (main)=>{
   const khoPheList = []; khoSnap.forEach(ch=>{ const v=ch.val(); if(v.is_active!==false && v.loai_kho==='Phế') khoPheList.push({__id:ch.key,...v}); });
   khoPheList.sort((a,b)=>(a.ma_kho||'').localeCompare(b.ma_kho||''));
   const khoAutoPhe = khoPheList[0] || null; // chỉ nên có đúng 1 kho loại "Phế" — nếu lỡ có nhiều thì lấy kho đầu (theo mã kho)
+
+  // Tính tỷ lệ kg thực tế của từng PO trong 1 Batch — nguồn CHUẨN là production_lot_allocation
+  // (allocation_type=ACTUAL, status=ACTIVE), đúng nguồn dữ liệu đã dùng cho Batch/PO/LOT ở nơi khác,
+  // không tự bịa nguồn tính tỷ lệ mới.
+  async function batchTinhTyLePO(batchId){
+    const allocSnap = await db.ref('production_lot_allocation').orderByChild('batch_id').equalTo(batchId).once('value');
+    const byPo = {};
+    allocSnap.forEach(ch=>{
+      const v = ch.val();
+      if(v.status!=='ACTIVE' || v.allocation_type!=='ACTUAL' || !v.po_id) return;
+      const kg = Number(v.qty_kg)>0 ? Number(v.qty_kg) : (Number(v.qty_met)>0 ? Number(v.qty_met) : 0);
+      if(kg>0) byPo[v.po_id] = (byPo[v.po_id]||0) + kg;
+    });
+    const tong = Object.values(byPo).reduce((s,v)=>s+v,0);
+    if(!(tong>0)) return null; // Batch chưa có sản lượng thực tế nào để tính tỷ lệ
+    return Object.entries(byPo).map(([poId,kg])=>({ poId, kg, fraction: kg/tong })).sort((a,b)=>b.kg-a.kg);
+  }
+
+  // Chia 1 tổng số lượng thành N phần theo đúng tỷ lệ, dùng "largest remainder" để tổng các phần
+  // cộng lại CHÍNH XÁC bằng tổng ban đầu (không lệch do làm tròn từng dòng riêng lẻ).
+  function chiaTyLeLargestRemainder(tong, ratios, soThapPhan){
+    const factor = Math.pow(10, soThapPhan);
+    const raw = ratios.map(r=>tong*r*factor);
+    const floors = raw.map(Math.floor);
+    let conLai = Math.round(raw.reduce((s,v)=>s+v,0)) - floors.reduce((s,v)=>s+v,0);
+    const order = raw.map((v,i)=>({i, rem:v-floors[i]})).sort((a,b)=>b.rem-a.rem);
+    const result = floors.slice();
+    for(let k=0;k<conLai && k<order.length;k++) result[order[k].i]++;
+    return result.map(v=>v/factor);
+  }
+
+
+  // Chỉ liệt kê Batch đang hoạt động (chưa huỷ) và có từ 2 PO tham gia trở lên — Batch 1 PO thì
+  // dùng thẳng dropdown "Lấy nhanh từ đơn hàng" như cũ, không cần qua cơ chế phân bổ tỷ lệ.
+  const batchAllocAll = []; batchAllocSnap.forEach(ch=>batchAllocAll.push({__id:ch.key,...ch.val()}));
+  const batchList = [];
+  batchSnap.forEach(ch=>{
+    const v = ch.val();
+    if(v.trang_thai==='CANCELLED') return;
+    const poIds = Array.from(new Set(batchAllocAll.filter(a=>a.batch_id===ch.key).map(a=>a.po_id).filter(Boolean)));
+    if(poIds.length>=2) batchList.push({__id:ch.key, ...v, poIds});
+  });
+  batchList.sort((a,b)=>(b.created_at||0)-(a.created_at||0));
+  const cdMapForBatch = {}; cdList.forEach(c=>cdMapForBatch[c.__id]=c);
 
   if(!loaiPheList.length || !nnList.length){
     main.innerHTML = `<div class="page-head"><div><h2>♻️ Ghi nhận phế liệu</h2></div></div>
@@ -12505,6 +12787,11 @@ PAGES.ghinhanphe = async (main)=>{
         <select id="gnp-po"><option value="">— Tự nhập tay —</option>${poList.map(p=>`<option value="${p.__id}">${esc(p.ma_po)}</option>`).join('')}</select></div>
       <div class="field"><label>Ngày</label><input type="date" id="gnp-ngay" value="${todayStr()}"></div>
     </div>
+    <div class="field">
+      <label>Hoặc: Phế phát sinh từ Lô gộp (Batch) chạy chung nhiều PO — sẽ tự phân bổ theo tỷ lệ kg thực tế</label>
+      <select id="gnp-batch"><option value="">— Không thuộc Batch nào (dùng PO ở trên) —</option>${batchList.map(b=>`<option value="${b.__id}">${esc(b.ma_batch)} — ${esc((cdMapForBatch[b.cong_doan_id]||{}).ten_cd||'?')} (${b.poIds.length} PO)</option>`).join('')}</select>
+      <div id="gnp-batch-preview" style="margin-top:8px;"></div>
+    </div>
     <div class="grid2">
       <div class="field"><label>Công đoạn</label><select id="gnp-cd"><option value="">— Chọn công đoạn —</option>${cdList.map(c=>`<option value="${c.__id}">${esc(c.ten_cd)}</option>`).join('')}</select></div>
       <div class="field"><label>Mã liệu (A/B/C...)</label><select id="gnp-loai"><option value="">— Chọn mã liệu —</option>${loaiPheList.map(l=>`<option value="${l.__id}" data-dvt="${esc(l.don_vi_mac_dinh||'kg')}">${esc(l.ma_loai)} - ${esc(l.ten_loai)}</option>`).join('')}</select></div>
@@ -12539,6 +12826,44 @@ PAGES.ghinhanphe = async (main)=>{
     const opt = e.target.selectedOptions[0];
     if(opt && opt.dataset.dvt) document.getElementById('gnp-dvt').value = opt.dataset.dvt;
   });
+
+  // ---- Batch ↔ PO đơn: chọn 1 trong 2, không dùng đồng thời (tránh vừa gán 1 PO vừa tách theo Batch). ----
+  let batchTyLeCache = null; // { batchId, rows:[{poId,kg,fraction}] } của lần tính gần nhất
+  async function renderBatchPreview(){
+    const batchId = document.getElementById('gnp-batch').value;
+    const previewEl = document.getElementById('gnp-batch-preview');
+    if(!batchId){ previewEl.innerHTML=''; batchTyLeCache=null; return; }
+    const soLuong = Number(document.getElementById('gnp-sl').value||0);
+    const dvt = document.getElementById('gnp-dvt').value;
+    if(!batchTyLeCache || batchTyLeCache.batchId!==batchId){
+      previewEl.innerHTML = `<div class="loading-inline">Đang tính tỷ lệ theo sản lượng thực tế…</div>`;
+      const rows = await batchTinhTyLePO(batchId);
+      batchTyLeCache = { batchId, rows };
+    }
+    const rows = batchTyLeCache.rows;
+    if(!rows){
+      previewEl.innerHTML = `<div class="err-msg">⛔ Batch này chưa ghi nhận sản lượng thực tế (chưa có LOT nào) — chưa đủ dữ liệu để tính tỷ lệ. Hãy chọn PO cụ thể ở trên thay vì Batch.</div>`;
+      return;
+    }
+    if(!(soLuong>0)){
+      previewEl.innerHTML = `<div class="sub">Nhập khối lượng phế ở dưới để xem trước cách phân bổ theo tỷ lệ ${dvt} thực tế của từng PO.</div>`;
+      return;
+    }
+    const parts = chiaTyLeLargestRemainder(soLuong, rows.map(r=>r.fraction), 3);
+    previewEl.innerHTML = `<div class="sub" style="margin-bottom:6px;">Sẽ tự động tách thành ${rows.length} dòng phế theo tỷ lệ kg thực tế đã sản xuất:</div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;"><tbody>${rows.map((r,i)=>`<tr><td style="padding:4px 6px;border-bottom:1px solid #eee;">${esc((poMap[r.poId]||{}).ma_po||r.poId)}</td><td class="mono" style="padding:4px 6px;border-bottom:1px solid #eee;text-align:right;">${(r.fraction*100).toFixed(1)}%</td><td class="mono" style="padding:4px 6px;border-bottom:1px solid #eee;text-align:right;">${fmtNum(parts[i])} ${dvt}</td></tr>`).join('')}</tbody></table>`;
+  }
+  $('#gnp-batch', main).addEventListener('change', (e)=>{
+    if(e.target.value){ document.getElementById('gnp-po').value=''; document.getElementById('gnp-po').disabled=true; }
+    else { document.getElementById('gnp-po').disabled=false; }
+    batchTyLeCache=null;
+    renderBatchPreview();
+  });
+  $('#gnp-po', main).addEventListener('change', (e)=>{
+    if(e.target.value){ document.getElementById('gnp-batch').value=''; document.getElementById('gnp-batch-preview').innerHTML=''; batchTyLeCache=null; }
+  });
+  $('#gnp-sl', main).addEventListener('input', renderBatchPreview);
+  $('#gnp-dvt', main).addEventListener('change', renderBatchPreview);
 
   function syncMotaFromChips(){
     const chosen = nnList.filter(n=>selectedNN.has(n.__id));
@@ -12593,6 +12918,7 @@ PAGES.ghinhanphe = async (main)=>{
     saveBtn.disabled = true;
     const warnEl = document.getElementById('gnp-warn'); warnEl.innerHTML='';
     const poId = document.getElementById('gnp-po').value || null;
+    const batchId = document.getElementById('gnp-batch').value || null;
     const cdId = document.getElementById('gnp-cd').value;
     const loaiId = document.getElementById('gnp-loai').value;
     const soLuong = Number(document.getElementById('gnp-sl').value||0);
@@ -12600,55 +12926,92 @@ PAGES.ghinhanphe = async (main)=>{
     if(!cdId){ warnEl.innerHTML = '<div class="err-msg">⛔ Chọn công đoạn.</div>'; saveBtn.disabled=false; return; }
     if(!loaiId){ warnEl.innerHTML = '<div class="err-msg">⛔ Chọn mã liệu / loại phế.</div>'; saveBtn.disabled=false; return; }
     if(!soLuong || soLuong<=0){ warnEl.innerHTML = '<div class="err-msg">⛔ Nhập khối lượng phế liệu &gt; 0.</div>'; saveBtn.disabled=false; return; }
-    const entry = {
-      po_id: poId, cong_doan_id: cdId, loai_phe_id: loaiId,
-      so_luong_nhap: soLuong, don_vi_nhap: dvt,
-      so_luong_kg: dvt==='kg'?soLuong:null, so_luong_met: dvt==='m'?soLuong:null,
-      nguyen_nhan_ids: Array.from(selectedNN),
-      // Không còn ô nhập tay riêng — lấy trực tiếp từ PO đã chọn ở trên (đúng 1 nguồn dữ liệu, không
-      // trùng lặp — nếu không chọn PO thì để trống, không tự bịa tên khách hàng).
-      khach_hang_don_hang: (()=>{ const po=poList.find(p=>p.__id===poId); return po ? `${po.ma_po}${po.khach_hang_id&&khMap[po.khach_hang_id]?' - '+khMap[po.khach_hang_id].ten_kh:''}` : ''; })(),
-      ghi_chu: document.getElementById('gnp-mota').value||'',
-      ngay_ghi_nhan: document.getElementById('gnp-ngay').value||todayStr(),
-      nguoi_thuc_hien: currentUser.full_name, nguon:'nhap_tay', created_at: Date.now(),
-    };
+
+    // ---- Nếu chọn Batch: tách 1 lần nhập thành N dòng phế theo đúng tỷ lệ kg thực tế của từng PO ----
+    // (tính lại tại thời điểm Lưu — KHÔNG dùng cache của preview — để tránh lệch nếu có SX mới ghi
+    // nhận thêm giữa lúc mở form và lúc bấm Lưu).
+    let entries;
+    let batchLabel = '';
+    if(batchId){
+      const rows = await batchTinhTyLePO(batchId);
+      if(!rows){
+        warnEl.innerHTML = '<div class="err-msg">⛔ Batch này chưa có sản lượng thực tế — không đủ dữ liệu để phân bổ theo tỷ lệ. Hãy chọn PO cụ thể thay vì Batch.</div>';
+        saveBtn.disabled=false; return;
+      }
+      const parts = chiaTyLeLargestRemainder(soLuong, rows.map(r=>r.fraction), 3);
+      entries = rows.map((r,i)=>({ poId:r.poId, soLuong:parts[i], fraction:r.fraction }));
+      const b = batchList.find(x=>x.__id===batchId);
+      batchLabel = b ? b.ma_batch : batchId;
+    } else {
+      entries = [{ poId, soLuong, fraction:null }];
+    }
+
     const khoPheId = khoAutoPhe ? khoAutoPhe.__id : null;
-    entry.kho_id = khoPheId;
+    const ngayGhiNhan = document.getElementById('gnp-ngay').value||todayStr();
+    const ghiChuGoc = document.getElementById('gnp-mota').value||'';
+    const nnIds = Array.from(selectedNN);
+    const nguoi = currentUser.full_name;
+
+    // Sinh key trước cho toàn bộ N dòng phế, rồi ghi 1 lần bằng update() đa-path — atomic (hoặc ghi
+    // đủ N dòng, hoặc không dòng nào), đúng pattern atomic đã dùng cho LOT/BOM ở nơi khác trong app.
+    const pheKeys = entries.map(()=>db.ref('phe_lieu').push().key);
+    const pheUpdates = {};
+    entries.forEach((en,i)=>{
+      const po = poList.find(p=>p.__id===en.poId);
+      const soLuongLamTron = Math.round(en.soLuong*1000)/1000;
+      pheUpdates['phe_lieu/'+pheKeys[i]] = {
+        po_id: en.poId, batch_id: batchId||null, cong_doan_id: cdId, loai_phe_id: loaiId,
+        so_luong_nhap: soLuongLamTron, don_vi_nhap: dvt,
+        so_luong_kg: dvt==='kg'?soLuongLamTron:null, so_luong_met: dvt==='m'?soLuongLamTron:null,
+        nguyen_nhan_ids: nnIds,
+        khach_hang_don_hang: po ? `${po.ma_po}${po.khach_hang_id&&khMap[po.khach_hang_id]?' - '+khMap[po.khach_hang_id].ten_kh:''}` : '',
+        ghi_chu: ghiChuGoc + (batchId ? `${ghiChuGoc?' | ':''}Tự động phân bổ ${(en.fraction*100).toFixed(1)}% từ Batch ${batchLabel} theo tỷ lệ kg thực tế` : ''),
+        ngay_ghi_nhan: ngayGhiNhan, nguoi_thuc_hien: nguoi, nguon:'nhap_tay', created_at: Date.now(),
+        kho_id: khoPheId,
+      };
+    });
+
     // FIX RỦI RO #2 (2025) — trước đây `.catch(()=>{})` nuốt lỗi im lặng ở bước cập nhật atomic: nếu
     // atomic thất bại (mất mạng/transaction conflict), code vẫn ghi sổ cái như không có gì xảy ra →
     // tồn kho cache lệch sổ cái mà không ai biết ngay. Giờ áp đúng pattern rollback của Kho chính
     // (renderKhoGiaoDich.customSave): atomic PHẢI throw nếu lỗi, ghi sổ cái trong try/catch riêng,
-    // nếu ghi sổ cái lỗi thì rollback bù trừ atomic + soft-delete bản ghi phe_lieu vừa tạo (không để
-    // lại bản ghi phế liệu "ma" không khớp tồn kho/sổ cái). Toàn bộ bọc try/catch để báo lỗi rõ ràng
+    // nếu ghi sổ cái lỗi thì rollback bù trừ atomic + soft-delete (các) bản ghi phe_lieu vừa tạo (không
+    // để lại bản ghi phế liệu "ma" không khớp tồn kho/sổ cái). Toàn bộ bọc try/catch để báo lỗi rõ ràng
     // cho người dùng thay vì lưu âm thầm một phần.
-    let newKey = null;
     try{
-      newKey = await db.ref('phe_lieu').push(entry).then(ref=>ref.key);
+      await db.ref().update(pheUpdates);
       if(khoPheId){
-        // Bước 1 — giữ chỗ atomic TRƯỚC (throw nếu lỗi, KHÔNG nuốt lỗi).
+        // Bước 1 — giữ chỗ atomic TRƯỚC (throw nếu lỗi, KHÔNG nuốt lỗi). Ghi 1 lần cho TỔNG số lượng
+        // (không nhân theo N dòng — tồn kho vật lý chỉ tăng đúng 1 lần bất kể tách bao nhiêu PO).
         await inventoryAdjustBalanceAtomic(khoPheId, 'Phế', loaiId, Math.abs(soLuong));
         try{
-          // Bước 2 — ghi sổ cái (bằng chứng cuối cùng).
+          // Bước 2 — ghi sổ cái (bằng chứng cuối cùng). po_id để trống nếu tách nhiều PO từ Batch
+          // (giao dịch kho là 1 dòng gộp, PO chi tiết đã có sẵn ở từng dòng phe_lieu qua batch_id).
           const ledgerKey = await db.ref('kho_giao_dich').push({
-            loai_giao_dich:'Phế', loai_hang:'Phế', kho_id:khoPheId, loai_phe_id:loaiId, po_id:poId,
-            so_luong:soLuong, ngay_giao_dich:entry.ngay_ghi_nhan, nguoi_thuc_hien:entry.nguoi_thuc_hien,
-            ghi_chu:'Tự động từ Ghi nhận phế liệu ('+newKey+')', nguon:'nhap_tay', is_active:true, created_at:Date.now(),
+            loai_giao_dich:'Phế', loai_hang:'Phế', kho_id:khoPheId, loai_phe_id:loaiId,
+            po_id: entries.length===1 ? entries[0].poId : null, batch_id: batchId||null,
+            so_luong:soLuong, ngay_giao_dich:ngayGhiNhan, nguoi_thuc_hien:nguoi,
+            ghi_chu: batchId ? `Tự động từ Ghi nhận phế liệu — phân bổ theo Batch ${batchLabel} (${entries.length} PO)` : `Tự động từ Ghi nhận phế liệu (${pheKeys[0]})`,
+            nguon:'nhap_tay', is_active:true, created_at:Date.now(),
           }).then(ref=>ref.key);
-          await db.ref('phe_lieu/'+newKey+'/kho_giao_dich_id').set(ledgerKey);
+          await db.ref().update(Object.fromEntries(pheKeys.map(k=>['phe_lieu/'+k+'/kho_giao_dich_id', ledgerKey])));
         }catch(err){
-          // Rollback bù trừ atomic ở bước 1 + soft-delete bản ghi phe_lieu vừa tạo, giống hệt pattern
-          // rollback của customSave() Kho chính — tránh cache tồn kho lệch vĩnh viễn khỏi sổ cái.
+          // Rollback bù trừ atomic ở bước 1 + soft-delete TOÀN BỘ (các) bản ghi phe_lieu vừa tạo,
+          // giống hệt pattern rollback của customSave() Kho chính — tránh cache tồn kho lệch vĩnh
+          // viễn khỏi sổ cái, và tránh còn sót dòng phế "mồ côi" không khớp sổ cái.
           await inventoryAdjustBalanceAtomic(khoPheId, 'Phế', loaiId, -Math.abs(soLuong)).catch(()=>{});
-          await db.ref('phe_lieu/'+newKey).update({
-            is_active:false,
-            ghi_chu:(entry.ghi_chu?entry.ghi_chu+' | ':'')+'[Tự động huỷ do lỗi ghi sổ cái: '+err.message+']',
-          }).catch(()=>{});
+          await db.ref().update(Object.fromEntries(pheKeys.map(k=>['phe_lieu/'+k+'/is_active', false]))).catch(()=>{});
+          await db.ref().update(Object.fromEntries(pheKeys.map(k=>['phe_lieu/'+k+'/ghi_chu', (pheUpdates['phe_lieu/'+k].ghi_chu?pheUpdates['phe_lieu/'+k].ghi_chu+' | ':'')+'[Tự động huỷ do lỗi ghi sổ cái: '+err.message+']']))).catch(()=>{});
           throw err;
         }
       }
-      toast('Đã lưu ghi nhận phế liệu', 'ok');
+      toast(batchId ? `Đã lưu và phân bổ phế cho ${entries.length} PO theo tỷ lệ kg` : 'Đã lưu ghi nhận phế liệu', 'ok');
       document.getElementById('gnp-sl').value = '';
       document.getElementById('gnp-mota').value = '';
+      document.getElementById('gnp-batch').value = '';
+      document.getElementById('gnp-po').disabled = false;
+      document.getElementById('gnp-batch-preview').innerHTML = '';
+      batchTyLeCache = null;
       selectedNN.clear();
       wireChips();
       renderGnpHistory();
@@ -12656,6 +13019,7 @@ PAGES.ghinhanphe = async (main)=>{
       warnEl.innerHTML = '<div class="err-msg">⛔ Lỗi khi lưu ghi nhận phế liệu: '+esc(err.message)+'</div>';
     } finally { saveBtn.disabled = false; }
   });
+
 
   async function renderGnpHistory(){
     const wrap = document.getElementById('gnp-history');
@@ -12688,13 +13052,33 @@ PAGES.ghinhanphe = async (main)=>{
       // giữ nguyên lịch sử gốc để truy vết — đúng pattern huỷ LOT đã làm đúng từ trước.
       if(!can('delete')){ denyPermission('delete'); return; }
       if(!confirm('Xoá ghi nhận phế này? (Sẽ tạo giao dịch Điều chỉnh bù trừ, không xoá lịch sử gốc)')) return;
-      const rec = rows.find(r=>r.__id===b.dataset.gnpDel);
-      const updates = { ['phe_lieu/'+b.dataset.gnpDel+'/is_active']: false };
+      /* ================================================================
+         PROM #2 — FIX (mục V, VII, XV Test C/D): trước đây lấy `rec` từ mảng `rows` đã đọc SẴN trong bộ
+         nhớ (không đọc lại DB) rồi soft-delete bằng `is_active:false` gộp trong `updates` — KHÔNG atomic.
+         Nếu 2 TAB/2 NGƯỜI cùng bấm Xoá đúng 1 dòng phế liệu gần như đồng thời, cả hai đều thấy
+         `is_active` còn true, cả hai cùng đọc CÙNG 1 giao dịch sổ cái gốc và cùng ghi giao dịch Điều
+         chỉnh bù trừ → tồn kho bị bù trừ 2 LẦN (double reversal) dù chỉ có 1 ghi nhận phế bị xoá thật.
+         Nút `disabled=true` (Lớp 1, giữ nguyên ở trên) chỉ chặn double-click CÙNG TAB, không chặn được
+         2 tab/2 người — đúng đúng cảnh báo mục V "không được dựa vào biến JS local".
+         FIX: claim atomic `is_active: true -> false` bằng transaction() ngay trên chính node phe_lieu
+         trước khi đọc sổ cái/ghi reversal — chỉ 1 trong nhiều request đồng thời có thể commit. */
+      const pheRef = db.ref('phe_lieu/'+b.dataset.gnpDel);
+      const claimRes = await pheRef.transaction(cur=>{
+        if(!cur) return; // không tồn tại -> abort
+        if(cur.is_active===false) return; // abort -> đã bị xoá trước đó (hoặc đang bị xoá bởi request khác)
+        return Object.assign({}, cur, { is_active:false });
+      });
+      if(!claimRes.committed){
+        throw new Error('Ghi nhận phế liệu này đã bị xoá trước đó (có thể vừa bị xoá bởi 1 thao tác/người khác cùng lúc).');
+      }
+      const rec = claimRes.snapshot.val();
+      const updates = {};
       // FIX (cùng lớp lỗi RỦI RO #2 như gnp-save): trước đây `.catch(()=>{})` nuốt lỗi atomic rồi vẫn
       // tiếp tục ghi giao dịch Điều chỉnh + soft-delete như không có gì xảy ra → cache tồn kho có thể
       // lệch khỏi sổ cái mà không ai biết. Giờ atomic PHẢI throw nếu lỗi; nếu update() ghi sổ cái/
       // soft-delete sau đó thất bại, rollback bù trừ lại đúng phần atomic vừa áp.
       let atomicApplied = null;
+      try{
       if(rec && rec.kho_giao_dich_id && rec.kho_id){
         const ledgerSnap = await db.ref('kho_giao_dich/'+rec.kho_giao_dich_id).once('value');
         const orig = ledgerSnap.val();
@@ -12711,12 +13095,19 @@ PAGES.ghinhanphe = async (main)=>{
           };
         }
       }
-      try{
-        await db.ref().update(updates);
+      await db.ref().update(updates);
       }catch(err){
+        // PROM #2 — FIX: bất kỳ lỗi nào ở đây (đọc sổ cái, atomic, hoặc update() thất bại) đều xảy ra
+        // TRƯỚC KHI reversal thực sự commit xong → an toàn để rollback cả atomic (nếu đã áp) LẪN mở
+        // khoá `is_active` claim ở trên (trả về true), tránh kẹt record phế liệu ở trạng thái "đã xoá
+        // treo" mà không có gì thực sự được hoàn tác — người dùng có thể thử xoá lại.
         if(atomicApplied){
           await inventoryAdjustBalanceAtomic(atomicApplied.khoId, 'Phế', atomicApplied.loaiPheId, -atomicApplied.delta).catch(()=>{});
         }
+        await pheRef.transaction(cur=>{
+          if(!cur || cur.is_active!==false) return; // đã đổi bởi thao tác khác hoặc không còn tồn tại -> để nguyên
+          return Object.assign({}, cur, { is_active:true });
+        }).catch(()=>{});
         throw err;
       }
       toast('Đã xoá (đã tạo giao dịch Điều chỉnh bù trừ)');
