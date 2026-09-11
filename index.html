@@ -3587,7 +3587,7 @@ function navigateTo(key, params={}){
   // Sidebar/Header sáng mặc định chỉ khi ở Dashboard — trang gọi renderer() bên dưới có thể tự
   // bật/tắt thêm cho đúng theme riêng của nó (VD: PAGES.po bật cho danh sách PO, tắt ở Nổ BOM).
   const shell = document.getElementById('app-shell');
-  if(shell) shell.classList.toggle('pcd-shell-light', key==='dashboard' || key==='lsx' || key==='baocao');
+  if(shell) shell.classList.add('pcd-shell-light');
   const main = document.getElementById('main-content');
   main.innerHTML = '<div class="loading-inline">Đang tải…</div>';
   const renderer = PAGES[key];
