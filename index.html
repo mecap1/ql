@@ -4588,14 +4588,12 @@ function renderDashboardBody(body, stats, data){
 
     <div class="pcd-row2 r6040">
       <div class="pcd-card">
-        <div class="pcd-card-title"><div class="t"><i data-lucide="route"></i>Tiến độ theo công đoạn (KG)</div></div>
-        ${s.stageStats.length ? s.stageStats.map(x=>`
-          <div class="pcd-stage-row">
-            <div class="hd"><span class="name">${esc(x.cd.ten_cd)}<span class="n">(${x.soLsx} LSX)</span></span>
-              <span class="nums">${fmtNum(x.actualKg)} / ${fmtNum(x.planKg)} KG — ${fmtNum(x.pct)}%</span></div>
-            <div class="pcd-stage-track"><div class="done" style="width:${Math.min(100,x.pct)}%;"></div>${x.pct<100?`<div class="remain" style="width:${100-Math.min(100,x.pct)}%;"></div>`:''}</div>
-          </div>`).join('') : `<div class="pcd-empty"><i data-lucide="inbox"></i>Chưa có công đoạn nào trong Master Data.</div>`}
-        <div class="pcd-legend"><span><span class="sw" style="background:var(--pcd-green);"></span>Đã SX</span><span><span class="sw" style="background:var(--pcd-orange);opacity:.5;"></span>Còn lại</span></div>
+        <div class="pcd-card-title"><div class="t"><i data-lucide="clipboard-list"></i>Danh sách PO</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <input class="pcd-search" id="dash-po-search" placeholder="Tìm PO…" style="flex:1;min-width:180px;">
+          <select class="pcd-search" id="dash-po-status-filter"><option value="">— Tất cả trạng thái —</option>${Object.entries(DASH_BUCKET_LABEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+        </div>
+        <div class="pcd-table-wrap" id="dash-po-table-wrap"></div>
       </div>
       <div class="pcd-card" id="dash-alert-card" style="border-left:4px solid var(--pcd-red);">
         <div class="pcd-card-title"><div class="t"><i data-lucide="triangle-alert" style="color:var(--pcd-red);"></i>Cảnh báo cần xử lý</div><span id="dash-alert-count" class="pcd-badge faint"></span></div>
@@ -4663,12 +4661,14 @@ function renderDashboardBody(body, stats, data){
     </div>
 
     <div class="pcd-card">
-      <div class="pcd-card-title"><div class="t"><i data-lucide="clipboard-list"></i>Danh sách PO</div></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <input class="pcd-search" id="dash-po-search" placeholder="Tìm PO…" style="flex:1;min-width:180px;">
-        <select class="pcd-search" id="dash-po-status-filter"><option value="">— Tất cả trạng thái —</option>${Object.entries(DASH_BUCKET_LABEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
-      </div>
-      <div class="pcd-table-wrap" id="dash-po-table-wrap"></div>
+      <div class="pcd-card-title"><div class="t"><i data-lucide="route"></i>Tiến độ theo công đoạn (KG)</div></div>
+      ${s.stageStats.length ? s.stageStats.map(x=>`
+        <div class="pcd-stage-row">
+          <div class="hd"><span class="name">${esc(x.cd.ten_cd)}<span class="n">(${x.soLsx} LSX)</span></span>
+            <span class="nums">${fmtNum(x.actualKg)} / ${fmtNum(x.planKg)} KG — ${fmtNum(x.pct)}%</span></div>
+          <div class="pcd-stage-track"><div class="done" style="width:${Math.min(100,x.pct)}%;"></div>${x.pct<100?`<div class="remain" style="width:${100-Math.min(100,x.pct)}%;"></div>`:''}</div>
+        </div>`).join('') : `<div class="pcd-empty"><i data-lucide="inbox"></i>Chưa có công đoạn nào trong Master Data.</div>`}
+      <div class="pcd-legend"><span><span class="sw" style="background:var(--pcd-green);"></span>Đã SX</span><span><span class="sw" style="background:var(--pcd-orange);opacity:.5;"></span>Còn lại</span></div>
     </div>
 
     <div class="pcd-card">
