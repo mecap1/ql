@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>MES Cable - Quản lý sản xuất cáp</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0068FF">
+<meta name="theme-color" content="#007BFF">
 <!-- PWA — mục 7/23: mobile-web-app-capable cho Chrome/Edge Android; apple-touch-icon chỉ để iOS/Safari
      không hiện icon vỡ nếu người dùng "Thêm vào màn hình chính" (không phải mục tiêu chính của PROM
      này, chỉ là best-effort không tốn gì thêm — xem icons/icon-192.png, PLACEHOLDER cần thay logo thật). -->
@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <!-- Lucide icons — chỉ dùng cho icon trong trang "Ghi nhận sản xuất (LOT)" (.gnsx-light), không ảnh hưởng emoji ở các trang khác -->
 <script src="https://unpkg.com/lucide@0.462.0/dist/umd/lucide.js" defer></script>
 <style>
@@ -24,15 +24,16 @@
   --panel:#FFFFFF;
   --panel-2:#F1F5F9;
   --line:#E2E8F0;
-  --copper:#1E90FF;        /* primary — đổi theo mẫu BRAVO ERPVN (lấy mẫu pixel: rgb(30,144,255)) */
-  --copper-2:#1873CC;      /* primary hover / accent — tối hơn 1 nấc để có trạng thái hover rõ ràng */
-  --copper-dim:#1E90FF;    /* dùng cho active nav / avatar — cùng primary */
-  --primary:#1E90FF;
-  --primary-hover:#1873CC;
+  --copper:#007BFF;        /* primary accent — PROM UI-01 design system (Accent Blue #007BFF) */
+  --copper-2:#0062CC;      /* primary hover / accent — tối hơn 1 nấc để có trạng thái hover rõ ràng */
+  --copper-dim:#007BFF;    /* dùng cho active nav / avatar — cùng primary */
+  --primary:#007BFF;
+  --primary-hover:#0062CC;
   --primary-light:#EAF3FF;
-  --auth-accent:#0068FF;
-  --auth-accent-2:#0052CC;
-  --auth-accent-dim:#0052CC;
+  --navy:#1B263B;          /* PROM UI-01 — Primary Navy, dùng cho nền sidebar */
+  --auth-accent:#007BFF;
+  --auth-accent-2:#0062CC;
+  --auth-accent-dim:#0062CC;
   --auth-sky-1:#EAF3FF;
   --auth-sky-2:#DCE9FB;
   --auth-sky-3:#BFDBFE;
@@ -47,7 +48,7 @@
   --purple:#7C3AED;
 
   /* Canonical alias names (per design-system spec) — same values as above, kept in sync */
-  --primary-dark:#0052CC;
+  --primary-dark:#0062CC;
   --surface:#FFFFFF;
   --surface-hover:#F8FAFD;
   --surface-secondary:#F8FAFD;
@@ -108,118 +109,66 @@ button{font-family:inherit;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
 
-/* ---------- Setup / Login screens (redesign v2 — split layout, chỉ phạm vi .auth-card,
-   KHÔNG đụng .brand-mark dùng chung ở sidebar #app-shell — mọi override đều scoped
-   ".auth-card ..." nên không rò rỉ sang phần còn lại của app) ---------- */
+/* ---------- Login screen (redesign PROM-UI-01 — 2 cột trên desktop:
+   trái .auth-visual (branding), phải .auth-card-col chứa .auth-card —
+   phạm vi thay đổi chỉ trong .auth-visual/.auth-card/.auth-card-col/.center-screen,
+   KHÔNG đụng .brand-mark dùng chung ở sidebar #app-shell,
+   KHÔNG đổi bất kỳ id/class mà JS đang dùng) ---------- */
 .center-screen{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  min-height:100vh;display:flex;align-items:stretch;justify-content:center;
   position:relative;overflow:hidden;
   background:
-    radial-gradient(circle at 15% -10%, rgba(47,111,237,0.08) 0%, transparent 45%),
-    radial-gradient(circle at 105% 110%, rgba(76,141,255,0.07) 0%, transparent 50%),
-    radial-gradient(circle at 20% 0%, #ffffff 0%, #f1f3f6 60%);
-  padding:24px;
+    radial-gradient(circle at 15% -10%, rgba(47,111,237,0.07) 0%, transparent 45%),
+    radial-gradient(circle at 105% 110%, rgba(76,141,255,0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #EAF3FF 0%, #F3F8FE 60%, #F7FAFD 100%);
 }
-.center-screen::before{
-  content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background-image:radial-gradient(rgba(15,23,42,0.045) 1px, transparent 1px);
-  background-size:26px 26px;
+.auth-visual{
+  flex:0 1 44%;max-width:600px;min-width:340px;display:flex;flex-direction:column;
+  justify-content:center;padding:60px 60px;position:relative;z-index:1;
+  border-right:1px solid rgba(15,23,42,0.06);
+}
+.auth-card-col{
+  flex:1 1 56%;display:flex;align-items:center;justify-content:center;
+  padding:24px;position:relative;z-index:1;
 }
 .auth-card{
-  width:100%;max-width:420px;background:#ffffff;
-  border:1px solid #e5e7eb;position:relative;z-index:1;
-  border-radius:20px;padding:38px 34px 32px;
-  box-shadow:0 30px 70px -30px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.02) inset;
-}
-.auth-card::before{
-  content:'';position:absolute;top:0;left:18px;right:18px;height:2px;border-radius:0 0 3px 3px;
-  background:linear-gradient(90deg, transparent, var(--copper-2), var(--copper), transparent);
-  opacity:.8;
+  width:100%;max-width:520px;background:#ffffff;
+  position:relative;z-index:1;
+  border-radius:20px;padding:44px 44px 34px;
+  box-shadow:0 24px 60px -24px rgba(15,23,42,0.16), 0 0 0 1px rgba(15,23,42,0.03) inset;
 }
 .brand{display:flex;align-items:center;gap:14px;margin-bottom:30px;}
-.brand-mark{
-  width:44px;height:44px;border-radius:10px;
-  background:conic-gradient(from 220deg, var(--copper), #0057D9, var(--copper-2));
-  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.06) inset;
-}
 .brand h1{font-size:19px;color:var(--text);}
 .brand span{display:block;font-size:12px;color:var(--text-faint);margin-top:2px;font-family:'Inter';letter-spacing:.02em;}
 .brand .brand-logo-img{height:38px;width:auto;max-width:150px;display:block;object-fit:contain;}
 .brand .brand-logo-wrap{display:flex;flex-direction:column;gap:2px;}
 .brand .brand-logo-wrap span{margin-top:0;}
 
-/* ==== Split-screen auth layout (redesign v3 — ảnh nền bầu trời + nhà máy bên trái,
-   form card bên phải, tông đỏ thương hiệu OMAGA) ==== */
-.auth-card.auth-card--split{
-  max-width:1040px;padding:0;border-radius:22px;overflow:hidden;
-  display:grid;grid-template-columns:1.02fr 0.98fr;
-  box-shadow:0 40px 90px -32px rgba(15,23,42,0.22), 0 0 0 1px rgba(15,23,42,0.02) inset;
-}
-.auth-card.auth-card--split::before{display:none;}
-.auth-visual{
-  position:relative;overflow:hidden;
-  background:linear-gradient(180deg, var(--auth-sky-1) 0%, var(--auth-sky-2) 55%, var(--auth-sky-3) 100%);
-  display:flex;flex-direction:column;justify-content:flex-start;
-  padding:38px 34px 0;
-}
-.auth-visual::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 160px 60px at 20% 18%, rgba(255,255,255,0.85), transparent 70%),
-    radial-gradient(ellipse 120px 46px at 55% 10%, rgba(255,255,255,0.7), transparent 70%),
-    radial-gradient(ellipse 140px 50px at 85% 24%, rgba(255,255,255,0.6), transparent 70%);
-}
-.auth-visual::after{
-  content:'';position:absolute;left:0;right:0;top:0;height:4px;z-index:2;
-  background:linear-gradient(90deg, var(--auth-accent), var(--auth-accent-2), var(--auth-accent));
-}
-.auth-visual-inner{position:relative;z-index:1;}
-.auth-visual-inner .brand-logo-wrap img{height:42px;width:auto;max-width:180px;object-fit:contain;
-  filter:drop-shadow(0 4px 10px rgba(0,0,0,0.12));}
-.auth-visual-title{margin-top:22px;}
-.auth-visual-title h1{font-size:26px;font-weight:800;color:#0f1b2d;font-family:'Sora',sans-serif;letter-spacing:-0.01em;}
-.auth-visual-title p{font-size:13.5px;color:#3a4a5e;margin-top:4px;font-weight:600;letter-spacing:.01em;}
-.auth-visual-title .divider{width:42px;height:3px;background:var(--auth-accent);border-radius:2px;margin-top:14px;}
-.auth-features{margin-top:26px;display:flex;flex-direction:column;gap:16px;}
-.auth-feature{display:flex;gap:12px;align-items:flex-start;}
-.auth-feature .af-icon{
-  width:34px;height:34px;border-radius:9px;background:#ffffff;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(15,23,42,0.10);
-  color:var(--auth-accent);
-}
-.auth-feature .af-icon svg{width:17px;height:17px;}
-.auth-feature .af-text b{display:block;font-size:13.5px;color:#0f1b2d;font-weight:700;}
-.auth-feature .af-text span{display:block;font-size:12px;color:#4a5a6e;line-height:1.5;margin-top:2px;}
-.auth-visual-photo{
-  position:relative;margin-top:22px;flex:1;min-height:150px;
-}
-.auth-visual-photo svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:100%;display:block;}
-.auth-visual-copyright{
-  position:relative;z-index:1;text-align:center;font-size:11px;color:#3a4a5e;
-  padding:10px 0 14px;background:linear-gradient(0deg, rgba(255,255,255,0.55), transparent);
-}
-.auth-form-panel{
-  background:#ffffff;padding:52px 46px;display:flex;flex-direction:column;justify-content:center;
-}
-.auth-form-panel .form-head{margin-bottom:22px;}
-.auth-form-panel .form-head h2{font-size:24px;color:#0f172a;font-family:'Sora',sans-serif;letter-spacing:-0.01em;font-weight:800;}
-.auth-form-panel .form-head .divider{width:38px;height:3px;background:var(--auth-accent);border-radius:2px;margin-top:10px;}
-.auth-form-panel .form-head p{font-size:13px;color:#94a3b8;margin-top:12px;line-height:1.6;}
-.auth-remember-row{display:flex;align-items:center;justify-content:space-between;margin:2px 0 18px;}
-.auth-remember-row label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#64748b;cursor:pointer;user-select:none;}
-.auth-remember-row input[type="checkbox"]{width:15px;height:15px;accent-color:var(--auth-accent);cursor:pointer;}
-.auth-remember-row a,.auth-remember-row span.link-like{font-size:12.5px;color:var(--auth-accent);font-weight:600;cursor:pointer;text-decoration:none;}
-.auth-remember-row a:hover,.auth-remember-row span.link-like:hover{text-decoration:underline;}
-.auth-footer-badges{display:flex;justify-content:space-between;gap:6px;margin-top:22px;padding-top:18px;border-top:1px solid #eef1f5;}
-.auth-footer-badges .afb-item{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;text-align:center;}
-.auth-footer-badges .afb-item svg{width:16px;height:16px;color:var(--auth-accent);}
-.auth-footer-badges .afb-item span{font-size:10.5px;color:#94a3b8;font-weight:600;}
+/* Logo công ty — cột branding bên trái */
+.auth-visual .brand-logo-wrap{display:flex;justify-content:flex-start;margin-bottom:32px;}
+.auth-visual .brand-logo-wrap img{height:50px;width:auto;max-width:230px;object-fit:contain;}
+.auth-visual-title{font-size:25px;line-height:1.35;color:#0f1b2d;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;margin-bottom:14px;}
+.auth-visual-desc{font-size:14px;line-height:1.7;color:#64748b;font-family:'Inter',sans-serif;font-weight:400;max-width:400px;}
 
-@media (max-width:820px){
-  .auth-card.auth-card--split{grid-template-columns:1fr;max-width:440px;}
-  .auth-visual{display:none;}
-  .auth-form-panel{padding:34px 30px;}
+.auth-card .form-head{text-align:center;margin-bottom:26px;}
+.auth-card .form-head h2{font-size:24px;color:#0f1b2d;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
+.auth-card .form-head p{font-size:13.5px;color:#64748b;margin-top:8px;line-height:1.6;font-family:'Inter',sans-serif;font-weight:400;}
+
+/* >880px: 2 cột (trái branding, phải card). ≤880px: xếp chồng — branding thu gọn ở trên, card bên dưới. */
+@media (max-width:880px){
+  .center-screen{flex-direction:column;}
+  .auth-visual{
+    flex:0 0 auto;max-width:100%;min-width:0;border-right:none;
+    border-bottom:1px solid rgba(15,23,42,0.06);
+    padding:36px 24px 26px;align-items:center;text-align:center;
+  }
+  .auth-visual .brand-logo-wrap{justify-content:center;margin-bottom:16px;}
+  .auth-visual-title{font-size:20px;}
+  .auth-visual-desc{max-width:100%;margin:0 auto;}
+  .auth-card-col{padding:24px 16px;}
+}
+@media (max-width:600px){
+  .auth-card{max-width:calc(100% - 32px);padding:32px 22px 26px;border-radius:18px;}
 }
 
 .field{margin-bottom:16px;}
@@ -228,7 +177,7 @@ button{font-family:inherit;}
   width:100%;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;
   padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s, box-shadow .15s;
 }
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--copper);box-shadow:0 0 0 3px rgba(0,104,255,.12);}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--copper);box-shadow:0 0 0 3px rgba(0,123,255,.12);}
 .field textarea{resize:vertical;min-height:70px;}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -246,95 +195,102 @@ button{font-family:inherit;}
 .auth-card .err-msg{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;}
 .hint{font-size:12px;color:var(--text-faint);margin-top:14px;line-height:1.6;}
 
-/* Modernize input/button CHỈ trong auth-card (setup/login) — không đụng .field/.btn dùng chung ở
-   toàn app (form khác vẫn giữ nguyên giao diện cũ, đúng nguyên tắc thay đổi tối thiểu). */
-.auth-card .field label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;font-weight:600;}
+/* Input / Button — phong cách Minimal Premium, bo góc 10–12px, cao 48–52px,
+   CHỈ trong auth-card (login) — không đụng .field/.btn dùng chung ở toàn app. */
+.auth-card .field label{font-size:12.5px;text-transform:none;letter-spacing:0;color:#334155;font-weight:500;font-family:'Inter',sans-serif;}
 .auth-card .field input{
-  background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#0f172a;
-  padding:12px 14px;font-size:14.5px;transition:border-color .15s, box-shadow .15s, background .15s;
+  background:#F8FAFC;border:1px solid #E2E8F0;border-radius:11px;color:#0f172a;
+  height:50px;padding:0 14px;font-size:14.5px;font-family:'Inter',sans-serif;
+  transition:border-color .15s, box-shadow .15s, background .15s;
 }
+.auth-card .field input::placeholder{color:#94a3b8;}
 .auth-card .field input:focus{
   border-color:var(--auth-accent-2);background:#ffffff;
-  box-shadow:0 0 0 3px rgba(0,104,255,0.14);
+  box-shadow:0 0 0 3px rgba(0,123,255,0.12);
 }
 .auth-card .btn.full{
-  background:linear-gradient(180deg, var(--auth-accent-2), var(--auth-accent));
-  border-radius:10px;padding:12px 18px;font-size:14.5px;letter-spacing:.01em;
-  box-shadow:0 10px 20px -8px rgba(0,87,217,0.45);
+  background:var(--auth-accent-2);height:50px;
+  border-radius:11px;padding:0 18px;font-size:15px;font-weight:600;letter-spacing:.01em;
+  font-family:'Inter',sans-serif;
+  box-shadow:0 8px 18px -8px rgba(0,82,204,0.45);
   transition:filter .15s, transform .08s, box-shadow .15s;
 }
-.auth-card .btn.full:hover{filter:brightness(1.08);box-shadow:0 12px 24px -8px rgba(0,87,217,0.55);}
+.auth-card .btn.full:hover{filter:brightness(1.08);box-shadow:0 10px 22px -8px rgba(0,82,204,0.55);}
 .auth-card .btn.full:active{transform:translateY(1px) scale(0.99);}
 .auth-card .hint{
-  margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;
+  margin-top:20px;padding-top:16px;border-top:1px solid #eef1f5;
   font-size:12px;line-height:1.7;color:#94a3b8;
 }
 .auth-card .hint b.mono{background:#f1f5f9;color:#334155;padding:1px 6px;border-radius:4px;}
 .auth-card .hint span[style*="cursor:pointer"]{transition:color .15s;color:#94a3b8!important;}
 .auth-card .hint span[style*="cursor:pointer"]:hover{color:var(--auth-accent-2)!important;}
 
-/* ---- Professional touch-ups: icon inputs, password toggle, info box (login/setup) ---- */
+/* Icon input, toggle mật khẩu, remember/forgot row, version footer nhỏ ở cuối card */
 .auth-card .field{position:relative;}
 .auth-card .input-group{position:relative;display:flex;align-items:center;}
 .auth-card .input-group .in-icon{
-  position:absolute;left:13px;display:flex;align-items:center;justify-content:center;
+  position:absolute;left:14px;display:flex;align-items:center;justify-content:center;
   color:#94a3b8;pointer-events:none;width:16px;height:16px;
 }
-.auth-card .input-group input{width:100%;padding-left:40px;}
+.auth-card .input-group input{width:100%;padding-left:42px;}
 .auth-card .input-group.has-toggle input{padding-right:42px;}
 .auth-card .pw-toggle{
-  position:absolute;right:6px;width:32px;height:32px;border:none;background:transparent;
-  color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:7px;
+  position:absolute;right:6px;width:34px;height:34px;border:none;background:transparent;
+  color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;
   transition:color .15s, background .15s;
 }
 .auth-card .pw-toggle:hover{color:#334155;background:#f1f5f9;}
 .auth-card .pw-toggle svg{width:17px;height:17px;}
-.auth-card .form-badge{
-  display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.04em;
-  text-transform:uppercase;color:var(--auth-accent-2);background:rgba(0,104,255,0.1);
-  padding:4px 10px;border-radius:20px;margin-bottom:14px;
-}
+.auth-remember-row{display:flex;align-items:center;justify-content:space-between;margin:2px 0 20px;font-family:'Inter',sans-serif;}
+.auth-remember-row label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#64748b;cursor:pointer;user-select:none;}
+.auth-remember-row input[type="checkbox"]{width:15px;height:15px;border-radius:5px;accent-color:var(--auth-accent-2);cursor:pointer;}
+.auth-remember-row a,.auth-remember-row span.link-like{font-size:12.5px;color:var(--auth-accent-2);font-weight:600;cursor:pointer;text-decoration:none;}
+.auth-remember-row a:hover,.auth-remember-row span.link-like:hover{text-decoration:underline;}
 .auth-card .info-box{
   margin-top:20px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;
   background:#f8fafc;display:flex;gap:10px;align-items:flex-start;
 }
 .auth-card .info-box svg{width:15px;height:15px;flex-shrink:0;margin-top:2px;color:#94a3b8;}
-.auth-card .info-box .info-box-txt{font-size:12px;line-height:1.7;color:#64748b;}
+.auth-card .info-box .info-box-txt{font-size:12px;line-height:1.7;color:#64748b;font-family:'Inter',sans-serif;}
 .auth-card .info-box .info-box-txt b.mono{background:#eef2f7;color:#334155;padding:1px 6px;border-radius:4px;font-weight:600;}
 .auth-card .info-box .info-box-txt span[style*="cursor:pointer"]{transition:color .15s;color:#94a3b8!important;}
 .auth-card .info-box .info-box-txt span[style*="cursor:pointer"]:hover{color:var(--auth-accent-2)!important;}
+.auth-card .auth-version{
+  text-align:center;margin-top:22px;font-size:11.5px;color:#94a3b8;font-family:'Inter',sans-serif;
+}
 
 /* ---------- App shell ---------- */
 #app-shell{display:none;min-height:100vh;grid-template-columns:236px 1fr;}
 #app-shell.active{display:grid;}
 .sidebar{
-  background:var(--bg-2);border-right:1px solid var(--line);
+  background:var(--navy);border-right:1px solid rgba(255,255,255,.06);
   padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;
 }
 .sidebar .brand{margin-bottom:22px;padding:0 6px;}
-.sidebar .brand h1{font-size:15.5px;}
-.sidebar .brand .brand-logo-img{height:32px;}
+.sidebar .brand h1{font-size:15.5px;color:#fff;}
+.sidebar .brand span{color:rgba(255,255,255,.55);}
+.sidebar .brand .brand-logo-img{height:32px;background:#fff;border-radius:8px;padding:4px;box-sizing:border-box;}
 .nav-group{margin-bottom:6px;}
-.nav-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:14px 10px 6px;}
+.nav-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.40);padding:14px 10px 6px;}
 .nav-item{
-  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-dim);
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:rgba(255,255,255,.60);
   font-size:13.5px;cursor:pointer;font-weight:500;transition:background .12s,color .12s;user-select:none;
 }
-.nav-item:hover{background:var(--primary-light);color:var(--text);}
-.nav-item.active{background:var(--copper-dim);color:#fff;box-shadow:0 2px 8px -2px rgba(0,104,255,.4);}
-.nav-item .ic{font-size:15px;width:18px;text-align:center;}
-.sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.90);}
+.nav-item.active{background:rgba(0,123,255,.18);color:#fff;box-shadow:inset 3px 0 0 var(--copper);}
+.nav-item .ic{width:18px;height:18px;flex-shrink:0;stroke-width:2;}
+.sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
 .user-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;}
 .user-chip .av{width:30px;height:30px;border-radius:50%;background:var(--copper-dim);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
 .user-chip .meta{overflow:hidden;}
-.user-chip .name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.user-chip .role{font-size:11px;color:var(--text-faint);}
-.logout-link{font-size:12px;color:var(--text-faint);cursor:pointer;margin-top:8px;display:inline-block;padding:0 10px;}
+.user-chip .name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-chip .role{font-size:11px;color:rgba(255,255,255,.55);}
+.logout-link{font-size:12px;color:rgba(255,255,255,.55);cursor:pointer;margin-top:8px;display:inline-block;padding:0 10px;}
 .logout-link:hover{color:var(--danger);}
 
 .main{padding:26px 32px 60px;overflow-y:auto;overflow-x:hidden;height:100vh;max-width:100%;}
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
-.page-head h2{font-size:22px;}
+.page-head h2{font-size:24px;}
 .page-head .sub{font-size:13px;color:var(--text-faint);margin-top:4px;}
 .breadcrumbs{font-size:12px;color:var(--text-faint);margin-bottom:6px;}
 .breadcrumbs span{cursor:pointer;}
@@ -357,7 +313,7 @@ thead th{
 }
 tbody td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--text);white-space:nowrap;}
 tbody tr:last-child td{border-bottom:none;}
-tbody tr:hover{background:rgba(0,104,255,0.05);}
+tbody tr:hover{background:rgba(0,123,255,0.05);}
 tbody tr.clickable{cursor:pointer;}
 /* Cột "Sửa/Sao chép/Xoá" luôn dính bên phải khi bảng cuộn ngang (tránh bị khuất ngoài màn hình) */
 .table-wrap table th:last-child, .table-wrap table td:last-child{
@@ -369,7 +325,7 @@ tbody tr.clickable{cursor:pointer;}
 .badge.ok{background:rgba(22,163,74,0.1);color:var(--ok);border-color:rgba(22,163,74,0.25);}
 .badge.warn{background:rgba(245,158,11,0.12);color:var(--warn);border-color:rgba(245,158,11,0.28);}
 .badge.danger{background:rgba(220,38,38,0.1);color:var(--danger);border-color:rgba(220,38,38,0.25);}
-.badge.copper{background:rgba(0,104,255,0.1);color:var(--copper-2);border-color:rgba(0,104,255,0.25);}
+.badge.copper{background:rgba(0,123,255,0.1);color:var(--copper-2);border-color:rgba(0,123,255,0.25);}
 .badge.info{background:rgba(14,165,233,0.1);color:var(--info);border-color:rgba(14,165,233,0.25);}
 /* PROM Dashboard nâng cấp — progress bar dùng chung + segmented bar cho biểu đồ cơ cấu trạng thái */
 .pbar-track{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;height:10px;overflow:hidden;position:relative;}
@@ -531,7 +487,6 @@ tbody tr.clickable{cursor:pointer;}
 #app-shell.pcd-shell-light .sidebar{background:#F3FAFA;border-right:1px solid #D8EEEC;}
 #app-shell.pcd-shell-light .sidebar .brand h1{color:#174B57;}
 #app-shell.pcd-shell-light .sidebar .brand span,#app-shell.pcd-shell-light .nav-title{color:#6A8A90;font-weight:600;}
-#app-shell.pcd-shell-light .brand-mark{background:#08A6A6;box-shadow:none;}
 #app-shell.pcd-shell-light .sidebar .brand-logo-img{background:#FFFFFF;border-radius:8px;padding:4px;box-sizing:border-box;}
 #app-shell.pcd-shell-light .nav-item{color:#174B57;font-weight:500;border-left:3px solid transparent;padding-left:7px;}
 #app-shell.pcd-shell-light .nav-item .ic{color:#176B78;}
@@ -1684,7 +1639,7 @@ tbody tr.clickable{cursor:pointer;}
    standalone) hoặc sau khi cài xong (appinstalled). Đặt ở góc dưới để không đụng #update-banner (top). */
 #pwa-install-btn{
   display:none;position:fixed;right:18px;bottom:18px;z-index:150;
-  background:var(--pcd-blue,#0068FF);color:#fff;border:none;padding:10px 16px;border-radius:30px;
+  background:var(--pcd-blue,#007BFF);color:#fff;border:none;padding:10px 16px;border-radius:30px;
   font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 10px 30px rgba(15,23,42,0.25);
   align-items:center;gap:8px;
 }
@@ -1877,7 +1832,6 @@ tbody tr.clickable{cursor:pointer;}
 
 @media (max-width:860px){
   #app-shell{display:block;}
-  #app-shell.active{display:block;}
 
   .mobile-header{
     display:flex;align-items:center;gap:12px;
@@ -1943,7 +1897,7 @@ tbody tr.clickable{cursor:pointer;}
 #app-shell.pcd-shell-light .mh-icon-btn{border-color:#E2E8F0;color:#51607A;}
 #app-shell.pcd-shell-light .mobile-bottomnav{background:#FFFFFF;border-top:1px solid #E2E8F0;}
 #app-shell.pcd-shell-light .mbn-item{color:#8896AC;}
-#app-shell.pcd-shell-light .mbn-item.active{color:#1E90FF;}
+#app-shell.pcd-shell-light .mbn-item.active{color:#007BFF;}
 
 /* ================================================================
    TOUCH TARGET ≥44px TRÊN MOBILE/TABLET (≤860px) — hạng mục #1 checklist
@@ -2671,62 +2625,18 @@ tbody tr.clickable{cursor:pointer;}
 
 <!-- ============ LOGIN SCREEN ============ -->
 <div class="center-screen" id="login-screen" style="display:none;">
-  <div class="auth-card auth-card--split">
-    <div class="auth-visual">
-      <div class="auth-visual-inner">
-        <div class="brand-logo-wrap"><img id="login-brand-logo" alt="Logo công ty"></div>
-        <div class="auth-visual-title">
-          <h1>MES CABLE</h1>
-          <p>QUẢN LÝ SẢN XUẤT CÁP</p>
-          <div class="divider"></div>
-        </div>
-        <div class="auth-features">
-          <div class="auth-feature">
-            <div class="af-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="af-text"><b>Quản lý tập trung</b><span>Dữ liệu sản xuất được quản lý tập trung, đồng bộ và chính xác.</span></div>
-          </div>
-          <div class="auth-feature">
-            <div class="af-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-            <div class="af-text"><b>Theo dõi thời gian thực</b><span>Cập nhật trạng thái liên tục, kiểm soát chặt chẽ mọi công đoạn.</span></div>
-          </div>
-          <div class="auth-feature">
-            <div class="af-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V10M11 20V4M18 20v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
-            <div class="af-text"><b>Hiệu quả vượt trội</b><span>Tối ưu quy trình, nâng cao năng suất và chất lượng sản phẩm.</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="auth-visual-photo">
-        <svg viewBox="0 0 400 170" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="150" width="400" height="20" fill="#d7e2ec"/>
-          <rect x="10" y="95" width="120" height="55" fill="#e7edf3" stroke="#c9d4de" stroke-width="1"/>
-          <rect x="130" y="60" width="150" height="90" fill="#eef2f6" stroke="#c9d4de" stroke-width="1"/>
-          <rect x="280" y="80" width="90" height="70" fill="#e2e9f0" stroke="#c9d4de" stroke-width="1"/>
-          <g stroke="#b9c6d2" stroke-width="1">
-            <rect x="145" y="72" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="168" y="72" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="191" y="72" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="214" y="72" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="237" y="72" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="145" y="95" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="168" y="95" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="191" y="95" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="214" y="95" width="14" height="14" fill="#c9d8e4"/>
-            <rect x="237" y="95" width="14" height="14" fill="#c9d8e4"/>
-          </g>
-          <rect x="188" y="120" width="34" height="30" fill="#8ea6bb"/>
-          <rect x="178" y="112" width="54" height="8" fill="#0068FF"/>
-          <rect x="181" y="112" width="4" height="38" fill="#0068FF"/>
-          <rect x="225" y="112" width="4" height="38" fill="#0068FF"/>
-          <circle cx="45" cy="152" r="7" fill="#7fae7a"/>
-          <rect x="43" y="152" width="4" height="10" fill="#8a6a4a"/>
-          <circle cx="355" cy="150" r="8" fill="#7fae7a"/>
-          <rect x="353" y="150" width="4" height="12" fill="#8a6a4a"/>
-        </svg>
-      </div>
-      <div class="auth-visual-copyright">© 2025 OMAGA Vietnam Copper Tech Co.,Ltd. All rights reserved.</div>
-    </div>
+  <div class="auth-visual">
+    <div class="brand-logo-wrap"><img id="login-brand-logo" alt="Logo công ty"></div>
+    <h1 class="auth-visual-title">MES Cable<br>Quản lý sản xuất cáp</h1>
+    <p class="auth-visual-desc">Theo dõi nguyên vật liệu, bán thành phẩm và tiến độ sản xuất theo thời gian thực trên toàn bộ dây chuyền.</p>
+  </div>
+  <div class="auth-card-col">
+  <div class="auth-card">
     <div class="auth-form-panel">
-      <div class="form-head"><h2>Đăng nhập</h2><div class="divider"></div><p>Vui lòng đăng nhập để tiếp tục — v<span id="login-version">1.0.0</span></p></div>
+      <div class="form-head">
+        <h2>Đăng nhập</h2>
+        <p>Vui lòng đăng nhập để tiếp tục hệ thống MES Cable</p>
+      </div>
       <div id="login-err"></div>
       <form id="login-form">
         <div class="field">
@@ -2756,13 +2666,9 @@ tbody tr.clickable{cursor:pointer;}
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 8h.01M11 11h1v5h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <div class="info-box-txt">Tài khoản mặc định lần đầu: <b class="mono">admin</b> / <b class="mono">admin123</b> — hãy đổi mật khẩu ngay sau khi đăng nhập lần đầu.</div>
       </div>
-      <div class="auth-footer-badges">
-        <div class="afb-item"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Hiệu quả</span></div>
-        <div class="afb-item"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></svg><span>Chính xác</span></div>
-        <div class="afb-item"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Minh bạch</span></div>
-        <div class="afb-item"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>An toàn</span></div>
-      </div>
+      <div class="auth-version">MES Cable v<span id="login-version">1.0.0</span></div>
     </div>
+  </div>
   </div>
 </div>
 <script>
@@ -3444,39 +3350,39 @@ document.getElementById('update-dismiss').addEventListener('click', ()=>{
    ============================================================ */
 const NAV = [
   { group:'Tổng quan', items:[
-    { key:'dashboard', label:'Dashboard', icon:'📊' },
+    { key:'dashboard', label:'Dashboard', icon:'layout-dashboard' },
   ]},
   { group:'Danh mục (Master Data)', items:[
-    { key:'md', label:'Master Data', icon:'🗂️' },
+    { key:'md', label:'Master Data', icon:'database' },
   ]},
   { group:'Sản xuất', items:[
-    { key:'routing', label:'Routing', icon:'🛤️' },
-    { key:'bom', label:'BOM', icon:'🧬' },
-    { key:'po', label:'PO / LSX', icon:'📋' },
-    { key:'lsx', label:'Kế hoạch SX / LSX', icon:'🧾' },
-    { key:'batch', label:'Production Batch', icon:'🏭' },
-    { key:'kho', label:'Kho', icon:'📦' },
-    { key:'ghinhansx', label:'Ghi nhận SX (LOT)', icon:'🏷️' },
-    { key:'ghinhanphe', label:'Ghi nhận phế liệu', icon:'♻️' },
-    { key:'maymoc', label:'Máy móc / Sự cố', icon:'🏭' },
-    { key:'qrscan', label:'Scan QR / Tra LOT', icon:'📷' },
+    { key:'routing', label:'Routing', icon:'route' },
+    { key:'bom', label:'BOM', icon:'git-branch' },
+    { key:'po', label:'PO / LSX', icon:'clipboard-list' },
+    { key:'lsx', label:'Kế hoạch SX / LSX', icon:'calendar-clock' },
+    { key:'batch', label:'Production Batch', icon:'factory' },
+    { key:'kho', label:'Kho', icon:'warehouse' },
+    { key:'ghinhansx', label:'Ghi nhận SX (LOT)', icon:'tag' },
+    { key:'ghinhanphe', label:'Ghi nhận phế liệu', icon:'recycle' },
+    { key:'maymoc', label:'Máy móc / Sự cố', icon:'wrench' },
+    { key:'qrscan', label:'Scan QR / Tra LOT', icon:'qr-code' },
   ]},
   { group:'Chấm công', items:[
-    { key:'cc_scan', label:'Máy chấm công', icon:'🕒', roles:['admin','quan_ly'] },
-    { key:'cc_qly', label:'Quản lý chấm công', icon:'🗓️' },
-    { key:'cc_thang', label:'Chốt công tháng', icon:'🔒' },
+    { key:'cc_scan', label:'Máy chấm công', icon:'clock', roles:['admin','quan_ly'] },
+    { key:'cc_qly', label:'Quản lý chấm công', icon:'calendar-days' },
+    { key:'cc_thang', label:'Chốt công tháng', icon:'lock' },
   ]},
   { group:'Phân tích', items:[
-    { key:'wip', label:'WIP', icon:'⏳' },
-    { key:'hesok', label:'Hệ số K', icon:'🧮' },
-    { key:'haohut', label:'Hao hụt NVL', icon:'📉' },
-    { key:'baocao', label:'Báo cáo', icon:'📈' },
+    { key:'wip', label:'WIP', icon:'hourglass' },
+    { key:'hesok', label:'Hệ số K', icon:'calculator' },
+    { key:'haohut', label:'Hao hụt NVL', icon:'trending-down' },
+    { key:'baocao', label:'Báo cáo', icon:'bar-chart-3' },
   ]},
   { group:'Hệ thống', items:[
-    { key:'erp', label:'Tích hợp ERP', icon:'🔌', roles:['admin','quan_ly'] },
-    { key:'integrity', label:'Kiểm tra dữ liệu (Integrity)', icon:'🛡️', roles:['admin','quan_ly'] },
-    { key:'users', label:'Người dùng', icon:'👤', roles:['admin'] },
-    { key:'settings', label:'Cài đặt hệ thống', icon:'⚙️', roles:['admin'] },
+    { key:'erp', label:'Tích hợp ERP', icon:'plug', roles:['admin','quan_ly'] },
+    { key:'integrity', label:'Kiểm tra dữ liệu (Integrity)', icon:'shield-check', roles:['admin','quan_ly'] },
+    { key:'users', label:'Người dùng', icon:'user', roles:['admin'] },
+    { key:'settings', label:'Cài đặt hệ thống', icon:'settings', roles:['admin'] },
   ]},
 ];
 
@@ -3489,7 +3395,7 @@ function buildNav(){
     let itemsHtml = '';
     g.items.forEach(it=>{
       if(it.roles && !it.roles.includes(currentUser.role)) return;
-      itemsHtml += `<div class="nav-item" data-nav="${it.key}"><span class="ic">${it.icon}</span>${esc(it.label)}</div>`;
+      itemsHtml += `<div class="nav-item" data-nav="${it.key}"><i data-lucide="${it.icon}" class="ic"></i>${esc(it.label)}</div>`;
     });
     if(!itemsHtml) return;
     div.innerHTML = `<div class="nav-title">${esc(g.group)}</div>${itemsHtml}`;
@@ -3498,6 +3404,7 @@ function buildNav(){
   $all('.nav-item', root).forEach(el=>{
     el.addEventListener('click', ()=> navigateTo(el.dataset.nav));
   });
+  pcdRenderIcons(); // tái sử dụng helper Lucide hiện có (định nghĩa ở khu vực Dashboard) — không tạo hàm mới
 }
 
 let currentPage = null;
@@ -8445,6 +8352,429 @@ function renderKhoGiaoDich(container){
   renderCrud(container, config);
 }
 
+/* ================================================================
+   PROM FIX-02 — OPENING BALANCE + OPENING WIP REQUEST INTEGRITY
+   Mục tiêu: 1 submission logic = 1 logical request. Retry (network loss, double-click, multi-tab,
+   reload giữa chừng) phải reconcile/continue an toàn, KHÔNG replay mù toàn bộ form, KHÔNG cộng
+   balance/ghi ledger trùng.
+
+   Ý TƯỞNG mượn từ qrNhapMarker*()/GATE 01.1 (FIX-01/FIX-01B) nhưng generic hoá theo `markerRoot` để
+   dùng CHUNG cho cả 2 flow Opening Balance và Opening WIP (2 root path RIÊNG — không trộn với
+   qr_nhap_request_marker/lot_request_marker, đúng nguyên tắc chọn convention không đụng schema
+   evidence khác nhau).
+
+   Mỗi DÒNG trong 1 lần submit có 1 `rowRequestId` ổn định = `<submissionRequestId>_<rowKey DOM>`,
+   với submissionRequestId sinh 1 LẦN khi mở modal và rowKey sinh 1 lần khi tạo dòng — KHÔNG đổi khi
+   submit lại cùng modal (xem openOpeningBalanceModal/openOpeningWipModal).
+
+   State machine mỗi dòng:
+     ACTIVE (đã claim, chưa có identity)
+       → IDENTITY_ASSIGNED (đã khoá identity/khoá key xác định — TRƯỚC khi cộng balance, để không bao
+         giờ phải gọi lotGenerateId()/tạo identity mới khi retry)
+       → BALANCE_APPLIED (balance ĐÃ cộng THÀNH CÔNG, xác nhận bằng Firebase transaction snapshot —
+         từ đây TUYỆT ĐỐI không được gọi inventoryAdjustBalanceAtomic() lần nữa cho dòng này)
+       → COMMITTED (ghi chính — kho_giao_dich/production_lot/lot_audit_log — đã ghi, dùng deterministic
+         key nên việc ghi lại là IDEMPOTENT, an toàn để retry mù bước này)
+     UNKNOWN_COMMIT: nhánh xám khi 1 bước xác nhận (transaction) không confirm được — KHÔNG suy đoán
+       FAILED, KHÔNG rollback, chỉ tự đối chiếu bằng bằng chứng ghi chính (nếu có) hoặc yêu cầu người
+       dùng kiểm tra thủ công trước khi thử lại (không bao giờ tự ý gọi lại balance).
+   ================================================================ */
+const OPENING_MARKER_ABANDON_MS = 120000; // cùng độ lớn với QR_NHAP_MARKER_ABANDON_MS — trần vùng-xám TRƯỚC khi có identity.
+
+async function openingMarkerBegin(markerRoot, rowRequestId){
+  const now = Date.now();
+  const preSnap = await db.ref(markerRoot+'/'+rowRequestId).once('value'); // đọc thẳng server, không cache.
+  const preVal = preSnap.val();
+  if(preVal && preVal.status==='COMMITTED') return { state:'COMMITTED', marker:preVal };
+  if(preVal && (preVal.status==='IDENTITY_ASSIGNED' || preVal.status==='BALANCE_COMMIT_STARTED' || preVal.status==='BALANCE_APPLIED' || preVal.status==='UNKNOWN_COMMIT')){
+    return { state:'RESUME', marker:preVal };
+  }
+  if(preVal && preVal.status==='ACTIVE'){
+    const age = now - Number(preVal.started_at||0);
+    if(age < OPENING_MARKER_ABANDON_MS){
+      const err = new Error('Dòng này đang được xử lý (có thể do bấm 2 lần hoặc đang mở ở tab khác) — vui lòng đợi trong giây lát rồi thử lại.');
+      err.code = 'REQUEST_IN_PROGRESS'; throw err;
+    }
+  }
+  const txResult = await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(cur && cur.status && cur.status!=='ACTIVE') return; // ABORT — 1 nhánh khác vừa tiến xa hơn (IDENTITY_ASSIGNED/BALANCE_COMMIT_STARTED/BALANCE_APPLIED/UNKNOWN_COMMIT/COMMITTED), không đè.
+    if(cur && cur.status==='ACTIVE'){
+      const age = now - Number(cur.started_at||0);
+      if(age < OPENING_MARKER_ABANDON_MS) return; // ABORT — nơi khác (tab khác) đang thực sự giữ.
+    }
+    return { status:'ACTIVE', started_at: now, user_id: (currentUser && currentUser.id) || null };
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  if(val && val.status==='COMMITTED') return { state:'COMMITTED', marker:val };
+  if(val && val.status && val.status!=='ACTIVE') return { state:'RESUME', marker:val };
+  if(!txResult || !txResult.committed || !val || val.status!=='ACTIVE'){
+    const err = new Error('Dòng này đang được xử lý — vui lòng đợi trong giây lát, không bấm lại nhiều lần.');
+    err.code = 'REQUEST_IN_PROGRESS'; throw err;
+  }
+  return { state:'CLAIMED', marker: val };
+}
+
+// Khoá identity (deterministic key/maLot/…) TRƯỚC khi cộng balance — để retry (nếu có) tái dùng ĐÚNG
+// identity này thay vì tạo key/maLot mới cho cùng 1 dòng logic.
+async function openingMarkerAssignIdentity(markerRoot, rowRequestId, pending){
+  const txResult = await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(!cur || cur.status!=='ACTIVE') return cur; // đã có tiến độ khác (race) — không đè.
+    return Object.assign({}, cur, { status:'IDENTITY_ASSIGNED', pending, identity_assigned_at: Date.now() });
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return { confirmed: !!(val && val.status==='IDENTITY_ASSIGNED' && val.pending), marker: val };
+}
+
+// FIX-02B — LỖI #1: xác nhận (CONFIRMED, bằng snapshot transaction trả về) rằng server đã ghi nhận
+// "sắp/đang gọi inventoryAdjustBalanceAtomic()" TRƯỚC KHI thực sự gọi. Đây là điểm mấu chốt: nếu tab
+// bị đóng/crash/mất mạng NGAY TRONG LÚC gọi balance (không kịp chạy bất kỳ catch() nào ở phía JS), thì
+// khi resume, marker đã là BALANCE_COMMIT_STARTED (không còn là IDENTITY_ASSIGNED) → bị khoá thành
+// UNKNOWN_COMMIT ngay, KHÔNG BAO GIỜ tự động gọi lại balance (mục V FIX-02B: "Sau
+// BALANCE_COMMIT_STARTED: KHÔNG ĐƯỢC quay về trạng thái có thể cộng balance lại").
+async function openingMarkerMarkBalanceCommitStarted(markerRoot, rowRequestId){
+  const txResult = await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(!cur || cur.status!=='IDENTITY_ASSIGNED') return cur;
+    return Object.assign({}, cur, { status:'BALANCE_COMMIT_STARTED', balance_commit_started_at: Date.now() });
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return { confirmed: !!(val && val.status==='BALANCE_COMMIT_STARTED'), marker: val };
+}
+
+// Xác nhận (bằng snapshot Firebase transaction trả về, KHÔNG suy đoán) rằng server hiện đã ghi nhận
+// balance đã cộng cho dòng này — chỉ khi `confirmed===true` mới được coi là an toàn để KHÔNG BAO GIỜ
+// gọi lại inventoryAdjustBalanceAtomic() cho dòng này nữa. Chỉ chuyển được từ BALANCE_COMMIT_STARTED
+// (không còn nhánh nào từ IDENTITY_ASSIGNED thẳng sang đây — mọi lần gọi balance đều phải đi qua
+// BALANCE_COMMIT_STARTED trước, mục V).
+async function openingMarkerMarkBalanceApplied(markerRoot, rowRequestId){
+  const txResult = await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(!cur || cur.status!=='BALANCE_COMMIT_STARTED') return cur;
+    return Object.assign({}, cur, { status:'BALANCE_APPLIED', balance_applied_at: Date.now() });
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return { confirmed: !!(val && val.status==='BALANCE_APPLIED'), marker: val };
+}
+
+// Chuyển vùng-xám khi 1 bước xác nhận không confirm được (không rõ đã áp dụng hay chưa), HOẶC khi
+// resume gặp BALANCE_COMMIT_STARTED (mục III FIX-02B: "BALANCE_COMMIT_STARTED → UNKNOWN_COMMIT —
+// không balance lại"). GIỮ NGUYÊN UNKNOWN_COMMIT, KHÔNG rollback, KHÔNG xoá marker, để lượt sau tự đối
+// chiếu bằng bằng chứng thật.
+async function openingMarkerMarkUnknown(markerRoot, rowRequestId){
+  await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(!cur || cur.status==='COMMITTED' || cur.status==='UNKNOWN_COMMIT') return cur;
+    return Object.assign({}, cur, { status:'UNKNOWN_COMMIT', commit_uncertain_at: Date.now() });
+  }).catch(()=>{});
+}
+
+// Đọc THẲNG server (không cache) để xác nhận bằng chứng ghi chính đã tồn tại & đúng identity của
+// đúng requestId này hay chưa — dùng để tự đối chiếu 1 dòng đang UNKNOWN_COMMIT (mục VII/X: không suy
+// đoán theo thời gian/tuổi marker).
+async function openingMarkerCheckEvidence(paths, rowRequestId){
+  if(!paths || !paths.length) return false;
+  for(const p of paths){
+    const snap = await db.ref(p).once('value');
+    const v = snap.val();
+    if(!v || v.request_id !== rowRequestId) return false;
+  }
+  return true;
+}
+
+async function openingMarkerForceCommitted(markerRoot, rowRequestId, result){
+  await db.ref(markerRoot+'/'+rowRequestId).transaction(cur=>{
+    if(!cur || cur.status==='COMMITTED') return cur;
+    return Object.assign({}, cur, { status:'COMMITTED', result: result||null, committed_at: Date.now() });
+  }).catch(()=>{});
+}
+
+// FIX-02C — LỖI CÒN SÓT CỦA FIX-02B: localStorage KHÔNG được coi là authority cho idempotency (mục II
+// FIX-02C). Nếu mất localStorage (bị chặn/xoá/đổi trình duyệt), việc chỉ dựa vào draft cục bộ để nhận
+// diện lại request cũ sẽ khiến hệ thống âm thầm sinh requestId MỚI và có thể cộng balance lần 2. Thay
+// bằng cơ chế SERVER-SIDE là authority duy nhất: quét toàn bộ marker root để tìm các dòng CHƯA
+// COMMITTED của user hiện tại — bất kể localStorage còn hay mất — và BẮT BUỘC đưa vào màn hình đối
+// chiếu trước khi cho phép mở form nhập mới (mục IV/V/VI/VII FIX-02C).
+//
+// Chỉ coi các status đã CHẠM ít nhất 1 bước khoá identity/ghi là "cần đối chiếu": ACTIVE đơn thuần
+// (chưa từng khoá identity) chưa hề chạm balance nên KHÔNG có rủi ro duplicate; nếu đã hết hạn giữ chỗ
+// (OPENING_MARKER_ABANDON_MS) thì bỏ qua hẳn (an toàn tự dọn), còn nếu còn "nóng" thì vẫn liệt kê để
+// không âm thầm bỏ qua 1 tab khác đang thực sự giữ request đó (mục XIV).
+async function openingMarkerScanPending(markerRoot, userId){
+  const snap = await db.ref(markerRoot).once('value');
+  const now = Date.now();
+  const out = [];
+  snap.forEach(ch=>{
+    const v = ch.val();
+    if(!v || !v.status) return;
+    if(v.status==='COMMITTED') return;
+    if(v.status==='ACTIVE'){
+      const age = now - Number(v.started_at||0);
+      if(age >= OPENING_MARKER_ABANDON_MS) return; // claim chết, chưa từng chạm ghi — an toàn bỏ qua.
+    }
+    // v.user_id có thể thiếu ở các marker tạo trước FIX-02C — CỐ Ý không lọc bỏ trong trường hợp đó
+    // (an toàn hơn: liệt kê dư còn hơn bỏ sót 1 dòng có thể đã cộng balance).
+    if(userId && v.user_id && v.user_id!==userId) return;
+    out.push({ rowRequestId: ch.key, marker: v });
+  });
+  return out;
+}
+
+function openingRowLabel(kind, p){
+  if(!p) return '(chưa có dữ liệu — claim bỏ dở)';
+  if(kind==='balance') return `${p.loai}/${p.itemId}`;
+  return `LSX ${(lsxMap[p.lsxId]&&lsxMap[p.lsxId].ma_lsx)||p.lsxId}`;
+}
+
+// FIX-02C — engine DUY NHẤT đưa 1 dòng đã có `pending` (IDENTITY_ASSIGNED trở lên) tiến tới COMMITTED,
+// dùng CHUNG cho cả vòng lặp submit bình thường LẪN màn hình đối chiếu (reconcile) — gộp lại để không
+// còn 2 bản logic có thể lệch nhau theo thời gian. kind: 'balance' | 'wip'.
+async function openingAdvanceRow(kind, rowRequestId, marker){
+  const markerRoot = kind==='balance' ? 'opening_balance_request_marker' : 'opening_wip_request_marker';
+  let status = marker.status;
+
+  if(status === 'COMMITTED') return { committed:true, marker };
+
+  if(status === 'BALANCE_COMMIT_STARTED'){
+    // Không rõ đã cộng balance hay chưa (có thể tab chết ngay trong lúc gọi) — khoá cứng UNKNOWN_COMMIT,
+    // KHÔNG BAO GIỜ tự động gọi lại balance (mục V/X FIX-02B/FIX-02C).
+    await openingMarkerMarkUnknown(markerRoot, rowRequestId);
+    status = 'UNKNOWN_COMMIT';
+    marker = Object.assign({}, marker, { status });
+  }
+
+  if(status === 'UNKNOWN_COMMIT'){
+    const p = marker.pending;
+    const paths = !p ? [] : (kind==='balance'
+      ? ['kho_giao_dich/'+p.ledgerKey]
+      : ['production_lot/'+p.lotKey, 'kho_giao_dich/'+p.ledgerKey, 'lot_audit_log/'+p.auditKey]);
+    const ok = p ? await openingMarkerCheckEvidence(paths, rowRequestId) : false;
+    if(ok){
+      const result = kind==='balance' ? { ledgerKey:p.ledgerKey } : { lotId:p.lotKey, ledgerKey:p.ledgerKey, auditKey:p.auditKey, maLot:p.maLot };
+      await openingMarkerForceCommitted(markerRoot, rowRequestId, result);
+      return { committed:true, marker: Object.assign({}, marker, {status:'COMMITTED'}) };
+    }
+    const e = new Error(`Dòng "${openingRowLabel(kind,p)}" đang ở trạng thái CHƯA XÁC ĐỊNH — cần kiểm tra thủ công lịch sử Kho > Giao dịch/Điều chỉnh tồn (mã tham chiếu nội bộ: ${rowRequestId}) trước khi có thể tiếp tục.`);
+    e.code = 'UNKNOWN_COMMIT'; throw e;
+  }
+
+  if(status === 'IDENTITY_ASSIGNED'){
+    const p = marker.pending;
+    // Xác nhận (transaction, KHÔNG suy đoán) "sắp gọi balance" TRƯỚC KHI gọi thật — để nếu tab
+    // chết/crash ngay trong lúc gọi (không kịp catch()), lượt sau vẫn thấy BALANCE_COMMIT_STARTED và tự
+    // khoá UNKNOWN_COMMIT ở nhánh trên thay vì gọi lại balance (mục V FIX-02B).
+    const started = await openingMarkerMarkBalanceCommitStarted(markerRoot, rowRequestId);
+    if(!started.confirmed){
+      const e = new Error(`Không xác nhận được trạng thái dòng "${openingRowLabel(kind,p)}" trước khi cộng tồn kho — vui lòng thử lại, hệ thống sẽ tự đối chiếu, không cộng trùng.`);
+      e.code='UNKNOWN_COMMIT'; throw e;
+    }
+    marker = started.marker;
+    try{
+      if(kind==='balance') await inventoryAdjustBalanceAtomic(p.khoId, p.loai, p.itemId, p.soLuong);
+      else await inventoryAdjustBalanceAtomic(p.khoId, 'BTP', p.lsxId, p.met);
+    }catch(balErr){
+      // balErr KHÔNG chứng minh được là "chưa cộng" (inventoryAdjustBalanceAtomic là shared helper,
+      // không sửa được để lấy bằng chứng phân biệt) → PHẢI coi là UNKNOWN_COMMIT.
+      await openingMarkerMarkUnknown(markerRoot, rowRequestId);
+      const e = new Error(`Không xác nhận được liệu tồn kho của dòng "${openingRowLabel(kind,p)}" đã được cập nhật hay chưa sau lỗi: ${balErr.message||balErr}. Cần kiểm tra thủ công trước khi thử lại (mã tham chiếu nội bộ: ${rowRequestId}).`);
+      e.code = 'UNKNOWN_COMMIT'; throw e;
+    }
+    const applied = await openingMarkerMarkBalanceApplied(markerRoot, rowRequestId);
+    if(!applied.confirmed){
+      await openingMarkerMarkUnknown(markerRoot, rowRequestId);
+      const e = new Error(`Tồn kho của dòng "${openingRowLabel(kind,p)}" có thể đã được cập nhật nhưng hệ thống chưa xác nhận được — vui lòng thử lại sau ít giây, không bấm nhiều lần liên tục.`);
+      e.code='UNKNOWN_COMMIT'; throw e;
+    }
+    marker = applied.marker;
+    status = 'BALANCE_APPLIED';
+  }
+
+  if(status === 'BALANCE_APPLIED'){
+    // Balance ĐÃ cộng CHẮC CHẮN — ghi ledger/production_lot/audit dùng deterministic key + request_id
+    // nên là bước IDEMPOTENT, an toàn để retry mù (mục X/XI FIX-02). TUYỆT ĐỐI không rollback ở đây.
+    const p = marker.pending;
+    const updates = {};
+    if(kind==='balance'){
+      const data = {
+        loai_giao_dich:'Tồn đầu kỳ', loai_hang: p.loai, kho_id: p.khoId, so_luong: p.soLuong,
+        ngay_giao_dich: p.ngay, nguoi_thuc_hien: currentUser.full_name,
+        ghi_chu: p.ghiChu || 'Tồn đầu kỳ (Go-Live)', nguon:'ton_dau_ky', is_active:true, created_at:Date.now(),
+        request_id: rowRequestId,
+      };
+      if(p.loai==='NVL') data.vat_tu_id = p.itemId;
+      else if(p.loai==='TP') data.san_pham_id = p.itemId;
+      else data.loai_phe_id = p.itemId;
+      updates['kho_giao_dich/'+p.ledgerKey] = data;
+      updates[markerRoot+'/'+rowRequestId+'/status'] = 'COMMITTED';
+      updates[markerRoot+'/'+rowRequestId+'/result'] = { ledgerKey: p.ledgerKey };
+      updates[markerRoot+'/'+rowRequestId+'/committed_at'] = Date.now();
+    } else {
+      const lsx = lsxMap[p.lsxId], cd = cdMap[p.cdId];
+      if(!lsx || !cd){
+        const e = new Error(`Không tìm thấy LSX/Công đoạn cho dòng đang chờ hoàn tất (mã tham chiếu nội bộ: ${rowRequestId}) — cần kiểm tra thủ công.`);
+        e.code = 'UNKNOWN_COMMIT'; throw e;
+      }
+      updates['production_lot/'+p.lotKey] = {
+        ma_lot: p.maLot, cong_doan_id: p.cdId, po_id: lsx.po_id||null, lsx_id: p.lsxId, batch_id: null,
+        may_id: null, mau_id: p.mauId, ca_id: null, cong_nhan_id: null,
+        ma_btp: p.maBtp, ten_btp: p.tenBtp, quy_cach: cd.mo_ta||'',
+        kg: p.kg, met: p.met, dvt_pcs_nhap: 0,
+        nguon_can: 'ton_dau_wip', nguoi_tao: currentUser.full_name,
+        trang_thai: 'AVAILABLE', kho_hien_tai_id: p.khoId, cong_doan_hien_tai_id: p.cdId,
+        is_lot_thua: false, lot_goc_id: null,
+        is_split_allocation: false, so_dong_phan_bo: 1,
+        source_type: 'OPENING_WIP', ma_tham_chieu_cu: p.refCode || null,
+        ngay_gio_tao: Date.now(), created_at: Date.now(),
+        request_id: rowRequestId,
+      };
+      updates['kho_giao_dich/'+p.ledgerKey] = {
+        loai_giao_dich:'Tồn đầu kỳ', loai_hang:'BTP', kho_id:p.khoId, lsx_id:p.lsxId, po_id: lsx.po_id||null,
+        so_luong: p.met, dvt_id:null, lot_id:p.lotKey, ma_lot:p.maLot,
+        cong_doan_id:p.cdId, nguon:'ton_dau_wip', ngay_giao_dich: p.ngay, nguoi_thuc_hien:currentUser.full_name,
+        ghi_chu: p.ghiChu || `Tồn đầu WIP (Go-Live)${p.refCode?' — tem cũ: '+p.refCode:''}`,
+        is_active:true, created_at:Date.now(),
+        request_id: rowRequestId,
+      };
+      updates['lot_audit_log/'+p.auditKey] = {
+        lot_id:p.lotKey, action:'CREATE',
+        detail:`Tồn đầu WIP — LOT ${p.maLot} — ${fmtNum(p.met)}m${p.kg!=null?' / '+fmtNum(p.kg)+'kg':''}${p.refCode?' (tem cũ: '+p.refCode+')':''}`,
+        user:currentUser.full_name, at:Date.now(),
+        request_id: rowRequestId,
+      };
+      updates[markerRoot+'/'+rowRequestId+'/status'] = 'COMMITTED';
+      updates[markerRoot+'/'+rowRequestId+'/result'] = { lotId: p.lotKey, ledgerKey: p.ledgerKey, auditKey: p.auditKey, maLot: p.maLot };
+      updates[markerRoot+'/'+rowRequestId+'/committed_at'] = Date.now();
+    }
+    await db.ref().update(updates);
+    if(kind==='wip'){
+      const lsx = lsxMap[p.lsxId];
+      if(lsx && lsx.trang_thai==='Chưa bắt đầu'){
+        // UI-only, không ảnh hưởng tính đúng của tồn kho/LOT — giữ nguyên .catch(()=>{}).
+        await db.ref('lsx/'+p.lsxId).update({trang_thai:'Đang chạy'}).catch(()=>{});
+      }
+    }
+    return { committed:true, marker: Object.assign({}, marker, {status:'COMMITTED'}) };
+  }
+
+  const e = new Error(`Trạng thái dòng không xác định (mã tham chiếu nội bộ: ${rowRequestId}) — cần kiểm tra thủ công.`);
+  e.code = 'UNKNOWN_COMMIT'; throw e;
+}
+
+// Dùng trong màn hình đối chiếu: đọc LẠI marker mới nhất từ server (đề phòng tab khác vừa đổi trạng
+// thái) rồi mới advance — không bao giờ dùng lại snapshot cũ đã hiển thị trên UI để quyết định ghi.
+async function openingReconcileContinue(kind, rowRequestId){
+  const markerRoot = kind==='balance' ? 'opening_balance_request_marker' : 'opening_wip_request_marker';
+  const begin = await openingMarkerBegin(markerRoot, rowRequestId);
+  if(begin.state==='COMMITTED') return { committed:true };
+  if(begin.state==='CLAIMED'){
+    // Marker gốc chỉ từng là ACTIVE (chưa có identity/pending) rồi bị bỏ dở — CHƯA HỀ ghi gì, KHÔNG có
+    // rủi ro balance. An toàn để dọn claim rỗng này và coi như đã xử lý xong (không phải "làm sạch" 1
+    // marker có ý nghĩa nghiệp vụ — mục XXII chỉ cấm xoá marker CÓ pending).
+    await db.ref(markerRoot+'/'+rowRequestId).remove().catch(()=>{});
+    return { committed:false, cleaned:true };
+  }
+  return await openingAdvanceRow(kind, rowRequestId, begin.marker);
+}
+
+// FIX-02C — màn hình BẮT BUỘC khi còn dòng CHƯA COMMITTED của user hiện tại (server authority, không
+// phụ thuộc localStorage). Không cho "bỏ qua, nhập mới" khi request cũ còn có khả năng đã cộng balance
+// (mục XIII) — chỉ có 2 lối ra: (a) hệ thống tự hoàn tất an toàn ("Tiếp tục xử lý"), hoặc (b) người
+// dùng xác nhận ĐÃ TỰ KIỂM TRA THỦ CÔNG (gõ xác nhận) — hành động này CHỈ đánh dấu COMMITTED, KHÔNG bao
+// giờ ghi lại ledger/gọi lại balance, mọi điều chỉnh số liệu (nếu cần) phải làm riêng qua Kho > Giao
+// dịch > Điều chỉnh (mục VIII FIX-02C).
+function renderOpeningReconcileModal(kind, pendingList, onAllResolved){
+  const markerRoot = kind==='balance' ? 'opening_balance_request_marker' : 'opening_wip_request_marker';
+  const title = kind==='balance' ? 'Tồn đầu kỳ — Cần đối chiếu trước khi nhập mới' : 'Tồn đầu WIP — Cần đối chiếu trước khi nhập mới';
+  function rowLine(item){
+    const p = item.marker.pending;
+    const label = openingRowLabel(kind, p);
+    const detail = !p ? '' : (kind==='balance'
+      ? `Kho: ${esc((khoMap[p.khoId]&&khoMap[p.khoId].ten_kho)||p.khoId)} — SL: ${fmtNum(p.soLuong)}`
+      : `Công đoạn: ${esc((cdMap[p.cdId]&&cdMap[p.cdId].ten_cd)||p.cdId)} — Kho: ${esc((khoMap[p.khoId]&&khoMap[p.khoId].ten_kho)||p.khoId)} — ${fmtNum(p.met)}m`);
+    return `<div class="opening-reconcile-row" data-rrid="${esc(item.rowRequestId)}" style="border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
+      <div style="font-weight:600;">${esc(label)}</div>
+      <div class="sub" style="font-size:12px;">${esc(detail)} — trạng thái: <b>${esc(item.marker.status)}</b></div>
+      <div class="opening-reconcile-msg" style="font-size:12px;margin-top:6px;"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button type="button" class="btn ghost opening-reconcile-continue">Tiếp tục xử lý</button>
+        <span class="opening-reconcile-manual" style="display:none;">
+          <input type="text" class="opening-reconcile-confirm-text" placeholder='Gõ "XAC NHAN"' style="width:180px;">
+          <button type="button" class="btn ghost opening-reconcile-manual-btn">Đánh dấu đã kiểm tra thủ công (không cộng lại)</button>
+        </span>
+      </div>
+    </div>`;
+  }
+  $('#modal-box').className = 'modal';
+  $('#modal-box').innerHTML = `
+    <div class="modal-head"><h3><i data-lucide="alert-triangle"></i>${esc(title)}</h3><button type="button" class="modal-x" id="orv-x">✕</button></div>
+    <div class="modal-body">
+      <div class="sub" style="margin-bottom:12px;line-height:1.6;">Hệ thống phát hiện <b>${pendingList.length}</b> dòng từ (các) lượt nhập trước CHƯA hoàn tất — có thể do mất mạng, đóng trình duyệt/mất dữ liệu cục bộ giữa chừng. Để tránh cộng tồn kho trùng, phải xử lý xong các dòng dưới đây trước khi có thể nhập dòng mới.</div>
+      <div id="orv-rows">${pendingList.map(rowLine).join('')}</div>
+    </div>
+    <div class="modal-foot"><button type="button" class="btn ghost" id="orv-cancel">Đóng</button></div>
+  `;
+  $('#modal-overlay').classList.add('active');
+  pcdRenderIcons();
+  document.getElementById('orv-x').addEventListener('click', closeModal);
+  document.getElementById('orv-cancel').addEventListener('click', closeModal);
+
+  document.querySelectorAll('.opening-reconcile-row').forEach(rowEl=>{
+    const rowRequestId = rowEl.dataset.rrid;
+    const msgEl = rowEl.querySelector('.opening-reconcile-msg');
+    const contBtn = rowEl.querySelector('.opening-reconcile-continue');
+    const manualWrap = rowEl.querySelector('.opening-reconcile-manual');
+    const manualBtn = rowEl.querySelector('.opening-reconcile-manual-btn');
+    const manualInput = rowEl.querySelector('.opening-reconcile-confirm-text');
+
+    async function afterMaybeResolved(){
+      const stillPending = await openingMarkerScanPending(markerRoot, currentUser && currentUser.id);
+      if(!stillPending.length){ closeModal(); onAllResolved(); }
+    }
+
+    contBtn.addEventListener('click', async ()=>{
+      contBtn.disabled = true;
+      msgEl.textContent = 'Đang xử lý...';
+      try{
+        const res = await openingReconcileContinue(kind, rowRequestId);
+        if(res.committed || res.cleaned){
+          rowEl.style.opacity = '0.55';
+          msgEl.textContent = '✓ Đã xử lý xong.';
+          contBtn.remove();
+          await afterMaybeResolved();
+        } else {
+          msgEl.textContent = '';
+          contBtn.disabled = false;
+        }
+      }catch(err){
+        if(err && err.code==='UNKNOWN_COMMIT'){
+          msgEl.innerHTML = `⛔ ${esc(err.message||String(err))}`;
+          manualWrap.style.display = 'inline-flex';
+        } else if(err && err.code==='REQUEST_IN_PROGRESS'){
+          msgEl.textContent = '⏳ ' + (err.message||'Đang được xử lý ở nơi khác, thử lại sau.');
+        } else {
+          msgEl.textContent = '⛔ ' + (err.message||String(err));
+        }
+        contBtn.disabled = false;
+      }
+    });
+
+    manualBtn.addEventListener('click', async ()=>{
+      if((manualInput.value||'').trim().toUpperCase() !== 'XAC NHAN'){
+        msgEl.textContent = '⛔ Cần gõ đúng "XAC NHAN" để xác nhận đã kiểm tra thủ công.';
+        return;
+      }
+      manualBtn.disabled = true;
+      try{
+        await openingMarkerForceCommitted(markerRoot, rowRequestId, { manual_reconcile:true, reconciled_by: currentUser.full_name, reconciled_at: Date.now() });
+        rowEl.style.opacity = '0.55';
+        msgEl.textContent = '✓ Đã đánh dấu xử lý thủ công bởi ' + esc(currentUser.full_name) + '.';
+        manualWrap.style.display = 'none';
+        await afterMaybeResolved();
+      }catch(err){
+        msgEl.textContent = '⛔ ' + (err.message||String(err));
+        manualBtn.disabled = false;
+      }
+    });
+  });
+}
+
+
 async function renderTonKho(container){
   container.innerHTML = `<div class="lxc-scope lxc-page">
     <div class="lxc-breadcrumb"><span>Tổng quan</span><i data-lucide="chevron-right"></i><span class="cur">Kho</span><span class="lxc-live"><span class="dot"></span>Realtime</span></div>
@@ -8737,6 +9067,15 @@ async function renderTonKho(container){
   }
   async function openOpeningBalanceModal(){
     if(!can('adjust')){ denyPermission('adjust'); return; }
+    // FIX-02C — SERVER-SIDE là authority DUY NHẤT để phát hiện request cũ chưa hoàn tất (mục II/IV):
+    // quét toàn bộ marker của user hiện tại, bất kể localStorage còn hay mất. Nếu còn dòng nào chưa
+    // COMMITTED, BẮT BUỘC đưa vào màn hình đối chiếu — KHÔNG cho mở form nhập mới (mục V/VI/XIII).
+    const pendingOB = await openingMarkerScanPending('opening_balance_request_marker', currentUser && currentUser.id);
+    if(pendingOB.length){
+      renderOpeningReconcileModal('balance', pendingOB, ()=>openOpeningBalanceModal());
+      return;
+    }
+    const openingBalanceRequestId = uid(); // Không còn gì pending trên server — an toàn để bắt đầu 1 logical submission mới.
     // Map các mặt hàng ĐÃ có Tồn đầu kỳ trước đó (kho|loại|item) — chỉ để CẢNH BÁO, không chặn, vì
     // kho_giao_dich là sổ cái cộng dồn (không có khái niệm "ghi đè").
     const existingOpening = {};
@@ -8757,7 +9096,8 @@ async function renderTonKho(container){
     }
     function rowHtml(){
       const id = ++rowSeq;
-      return `<div class="tdk-row-wrap" data-row="${id}" style="border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
+      const rowKey = uid(); // PROM FIX-02 — identity ổn định của DÒNG này trong suốt vòng đời modal (retry reuse).
+      return `<div class="tdk-row-wrap" data-row="${id}" data-rowkey="${rowKey}" style="border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
         <div style="display:grid;grid-template-columns:110px 1fr 1fr 110px 1fr 32px;gap:8px;align-items:start;">
           <select class="tdk-loai" data-r="${id}">
             <option value="NVL">NVL</option>
@@ -8829,12 +9169,13 @@ async function renderTonKho(container){
         const itemId = rowEl.querySelector('.tdk-item').value;
         const soLuong = Number(rowEl.querySelector('.tdk-soluong').value||0);
         const ghiChu = rowEl.querySelector('.tdk-ghichu').value.trim();
+        const rowKey = rowEl.dataset.rowkey; // PROM FIX-02 — identity ổn định của dòng này.
         if(!khoId && !itemId && !soLuong) return; // dòng trống, bỏ qua
         if(!khoId || !itemId || !(soLuong>0.0001)){
           errMsg = errMsg || `Dòng ${idx+1}: thiếu Kho/Mặt hàng, hoặc Số lượng phải lớn hơn 0.`;
           return;
         }
-        rows.push({loai, khoId, itemId, soLuong, ghiChu});
+        rows.push({loai, khoId, itemId, soLuong, ghiChu, rowKey});
       });
       if(errMsg){ errBox.innerHTML = `<div class="err-msg">⛔ ${esc(errMsg)}</div>`; return; }
       if(!rows.length){ errBox.innerHTML = `<div class="err-msg">⛔ Chưa nhập dòng nào hợp lệ.</div>`; return; }
@@ -8844,28 +9185,36 @@ async function renderTonKho(container){
       let done = 0;
       try{
         for(const r of rows){
-          await inventoryAdjustBalanceAtomic(r.khoId, r.loai, r.itemId, r.soLuong);
-          const data = {
-            loai_giao_dich:'Tồn đầu kỳ', loai_hang:r.loai, kho_id:r.khoId, so_luong:r.soLuong,
-            ngay_giao_dich: ngay, nguoi_thuc_hien: currentUser.full_name,
-            ghi_chu: r.ghiChu || 'Tồn đầu kỳ (Go-Live)', nguon:'ton_dau_ky', is_active:true, created_at:Date.now(),
-          };
-          if(r.loai==='NVL') data.vat_tu_id = r.itemId;
-          else if(r.loai==='TP') data.san_pham_id = r.itemId;
-          else data.loai_phe_id = r.itemId;
-          try{
-            await db.ref('kho_giao_dich').push(data);
-          }catch(e){
-            await inventoryAdjustBalanceAtomic(r.khoId, r.loai, r.itemId, -r.soLuong).catch(()=>{});
-            throw e;
+          // PROM FIX-02 — identity ổn định của DÒNG này: cùng requestId submission + cùng rowKey DOM
+          // = CÙNG logical record ở mọi lượt retry (double-click/mất response/2 tab), KHÔNG dùng push()
+          // key ngẫu nhiên làm idempotency (mục V). FIX-02C: server marker (không phải localStorage)
+          // là nơi DUY NHẤT quyết định dòng này đã xử lý tới đâu.
+          const rowRequestId = openingBalanceRequestId + '_' + r.rowKey;
+          const begin = await openingMarkerBegin('opening_balance_request_marker', rowRequestId);
+
+          if(begin.state==='COMMITTED'){ done++; continue; } // đã ghi thành công ở lượt trước — bỏ qua, KHÔNG cộng lại.
+
+          let marker = begin.marker;
+          if(begin.state==='CLAIMED'){
+            const pending = { khoId:r.khoId, loai:r.loai, itemId:r.itemId, soLuong:r.soLuong, ghiChu:r.ghiChu, ngay, ledgerKey:'obk_'+rowRequestId };
+            const assign = await openingMarkerAssignIdentity('opening_balance_request_marker', rowRequestId, pending);
+            if(!assign.confirmed){
+              const e = new Error(`Không xác nhận được trạng thái dòng "${r.loai}/${r.itemId}" — vui lòng thử lại sau ít giây.`);
+              e.code='UNKNOWN_COMMIT'; throw e;
+            }
+            marker = assign.marker;
           }
+          // RESUME (IDENTITY_ASSIGNED/BALANCE_COMMIT_STARTED/BALANCE_APPLIED/UNKNOWN_COMMIT) hoặc vừa
+          // CLAIMED — openingAdvanceRow() là NƠI DUY NHẤT tiến trạng thái, dùng chung với màn hình đối
+          // chiếu (openingReconcileContinue) để không có 2 bản logic có thể lệch nhau (mục X FIX-02C).
+          await openingAdvanceRow('balance', rowRequestId, marker);
           done++;
         }
         toast(`✓ Đã ghi Tồn đầu kỳ cho ${done} mặt hàng.`);
         closeModal();
         renderTonKho(container);
       }catch(err){
-        errBox.innerHTML = `<div class="err-msg">⛔ Đã ghi được ${done}/${rows.length} dòng thì gặp lỗi: ${esc(err.message||String(err))}. Các dòng đã ghi thành công KHÔNG bị mất — chỉ cần thử lại (các) dòng còn thiếu.</div>`;
+        errBox.innerHTML = `<div class="err-msg">⛔ Đã ghi được ${done}/${rows.length} dòng thì gặp lỗi: ${esc(err.message||String(err))}. Các dòng đã ghi thành công KHÔNG bị mất — chỉ cần bấm "Xác nhận" lại, hệ thống sẽ TỰ BỎ QUA các dòng đã ghi và chỉ tiếp tục phần còn thiếu.</div>`;
         submitBtn.disabled = false;
       }
     });
@@ -8891,6 +9240,13 @@ async function renderTonKho(container){
   }
   async function openOpeningWipModal(){
     if(!can('adjust')){ denyPermission('adjust'); return; }
+    // FIX-02C — SERVER-SIDE là authority DUY NHẤT (xem lý giải đầy đủ tại openOpeningBalanceModal()).
+    const pendingWip = await openingMarkerScanPending('opening_wip_request_marker', currentUser && currentUser.id);
+    if(pendingWip.length){
+      renderOpeningReconcileModal('wip', pendingWip, ()=>openOpeningWipModal());
+      return;
+    }
+    const openingWipRequestId = uid(); // Không còn gì pending trên server — an toàn để bắt đầu 1 logical submission mới.
     const mauSnap = await db.ref('master/mau').once('value');
     const mauMap = {}; mauSnap.forEach(ch=>mauMap[ch.key]=ch.val());
 
@@ -8909,7 +9265,8 @@ async function renderTonKho(container){
 
     function rowHtml(){
       const id = ++rowSeq;
-      return `<div class="tdw-row-wrap" data-row="${id}" style="border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
+      const rowKey = uid(); // PROM FIX-02 — identity ổn định của DÒNG này trong suốt vòng đời modal (retry reuse).
+      return `<div class="tdw-row-wrap" data-row="${id}" data-rowkey="${rowKey}" style="border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
           <select class="tdw-lsx" data-r="${id}"><option value="">-- LSX --</option>${lsxOptsHtml}</select>
           <select class="tdw-cd" data-r="${id}"><option value="">-- Công đoạn hiện tại --</option>${cdOptsHtml}</select>
@@ -8980,12 +9337,13 @@ async function renderTonKho(container){
         const kg = kgRaw==='' ? null : Number(kgRaw);
         const refCode = rowEl.querySelector('.tdw-refcode').value.trim();
         const ghiChu = rowEl.querySelector('.tdw-ghichu').value.trim();
+        const rowKey = rowEl.dataset.rowkey; // PROM FIX-02 — identity ổn định của dòng này.
         if(!lsxId && !cdId && !khoId && !met) return; // dòng trống, bỏ qua
         if(!lsxId || !cdId || !khoId || !(met>0.0001)){
           errMsg = errMsg || `Dòng ${idx+1}: thiếu LSX/Công đoạn/Kho, hoặc Số lượng mét phải lớn hơn 0.`;
           return;
         }
-        rows.push({lsxId, cdId, khoId, mauId, met, kg, refCode, ghiChu});
+        rows.push({lsxId, cdId, khoId, mauId, met, kg, refCode, ghiChu, rowKey});
       });
       if(errMsg){ errBox.innerHTML = `<div class="err-msg">⛔ ${esc(errMsg)}</div>`; return; }
       if(!rows.length){ errBox.innerHTML = `<div class="err-msg">⛔ Chưa nhập dòng nào hợp lệ.</div>`; return; }
@@ -8995,87 +9353,54 @@ async function renderTonKho(container){
       let done = 0;
       try{
         for(const r of rows){
-          const lsx = lsxMap[r.lsxId];
-          const cd = cdMap[r.cdId];
-          if(!lsx) throw new Error(`Không tìm thấy LSX (dòng ${done+1}).`);
-          if(!cd) throw new Error(`Không tìm thấy công đoạn (dòng ${done+1}).`);
-          const po = lsx.po_id ? poMap[lsx.po_id] : null;
-          const mau = r.mauId ? mauMap[r.mauId] : null;
+          // PROM FIX-02 — identity ổn định của DÒNG này: cùng requestId submission + cùng rowKey DOM =
+          // CÙNG logical record ở mọi lượt retry (double-click/mất response/2 tab), KHÔNG dùng push()
+          // key ngẫu nhiên làm idempotency, và KHÔNG gọi lại lotGenerateId() (đếm LOT) khi retry.
+          // FIX-02C: server marker (không phải localStorage) là nơi DUY NHẤT quyết định dòng này đã
+          // xử lý tới đâu.
+          const rowRequestId = openingWipRequestId + '_' + r.rowKey;
+          const begin = await openingMarkerBegin('opening_wip_request_marker', rowRequestId);
 
-          const { maLot } = await lotGenerateId(r.cdId);
-          const tenBomBtp = await lotResolveTenBtpTuBom(po, cd, mau);
-          const tenBtp = tenBomBtp || ((cd.ten_cd||'') + (mau ? ' - '+mau.ten_mau : ''));
-          const maBtp = tenBomBtp || cd.ma_cd || '';
+          if(begin.state==='COMMITTED'){ done++; continue; } // đã tạo LOT thành công ở lượt trước — bỏ qua.
 
-          const lotKey = db.ref('production_lot').push().key;
-          const ledgerKey = db.ref('kho_giao_dich').push().key;
-          const auditKey = db.ref('lot_audit_log').push().key;
-          const updates = {};
-          updates['production_lot/'+lotKey] = {
-            ma_lot: maLot, cong_doan_id: r.cdId, po_id: lsx.po_id||null, lsx_id: r.lsxId, batch_id: null,
-            may_id: null, mau_id: r.mauId, ca_id: null, cong_nhan_id: null,
-            ma_btp: maBtp, ten_btp: tenBtp, quy_cach: cd.mo_ta||'',
-            kg: r.kg, met: r.met, dvt_pcs_nhap: 0,
-            nguon_can: 'ton_dau_wip', nguoi_tao: currentUser.full_name,
-            trang_thai: 'AVAILABLE', kho_hien_tai_id: r.khoId, cong_doan_hien_tai_id: r.cdId,
-            is_lot_thua: false, lot_goc_id: null,
-            is_split_allocation: false, so_dong_phan_bo: 1,
-            // Field MỚI (nullable, thêm — không đổi/xoá field cũ, Phần U):
-            source_type: 'OPENING_WIP', ma_tham_chieu_cu: r.refCode || null,
-            ngay_gio_tao: Date.now(), created_at: Date.now(),
-          };
-          // Ledger = 'Tồn đầu kỳ' (không phải 'Nhập') — nhất quán với Phần C, và ĐÃ được mọi hàm tính
-          // tồn hiện có (kể cả tonBtpLsx() vừa vá ở trên) nhận diện đúng.
-          updates['kho_giao_dich/'+ledgerKey] = {
-            loai_giao_dich:'Tồn đầu kỳ', loai_hang:'BTP', kho_id:r.khoId, lsx_id:r.lsxId, po_id: lsx.po_id||null,
-            so_luong: r.met, dvt_id:null, lot_id:lotKey, ma_lot:maLot,
-            cong_doan_id:r.cdId, nguon:'ton_dau_wip', ngay_giao_dich:ngay, nguoi_thuc_hien:currentUser.full_name,
-            ghi_chu: r.ghiChu || `Tồn đầu WIP (Go-Live)${r.refCode?' — tem cũ: '+r.refCode:''}`,
-            is_active:true, created_at:Date.now(),
-          };
-          // CỐ TÌNH KHÔNG ghi bao_cong / production_lot_allocation (Phần D).
-          updates['lot_audit_log/'+auditKey] = {
-            lot_id:lotKey, action:'CREATE',
-            detail:`Tồn đầu WIP — LOT ${maLot} — ${fmtNum(r.met)}m${r.kg!=null?' / '+fmtNum(r.kg)+'kg':''}${r.refCode?' (tem cũ: '+r.refCode+')':''}`,
-            user:currentUser.full_name, at:Date.now(),
-          };
+          let marker = begin.marker;
+          if(begin.state==='CLAIMED'){
+            const lsx = lsxMap[r.lsxId];
+            const cd = cdMap[r.cdId];
+            if(!lsx) throw new Error(`Không tìm thấy LSX (dòng ${done+1}).`);
+            if(!cd) throw new Error(`Không tìm thấy công đoạn (dòng ${done+1}).`);
+            const po = lsx.po_id ? poMap[lsx.po_id] : null;
+            const mau = r.mauId ? mauMap[r.mauId] : null;
 
-          // PROM 11 — FIX 02/03 (mục IX–XI): inventory_balance PHẢI được cộng THÀNH CÔNG trước khi
-          // ghi production_lot/kho_giao_dich/lot_audit_log. Bỏ hẳn `.catch(()=>{})` nuốt lỗi của bản
-          // cũ — nếu bước này throw, KHÔNG được tạo bất kỳ node nào cho dòng này (mục XI), dừng lại
-          // và báo lỗi rõ ràng thay vì âm thầm tiếp tục với balance chưa an toàn.
-          try{
-            await inventoryAdjustBalanceAtomic(r.khoId, 'BTP', r.lsxId, r.met);
-          }catch(balErr){
-            throw new Error(`Không thể ghi Tồn đầu WIP vì tồn kho chưa được cập nhật an toàn (dòng ${done+1}): ${balErr.message||balErr}`);
-          }
-
-          // PROM 11 — FIX 04 (mục XII): nếu bước ghi dữ liệu chính thất bại SAU KHI balance đã tăng,
-          // phải rollback đúng phần vừa cộng. Nếu rollback cũng thất bại: KHÔNG nuốt lỗi — ghi
-          // console.error và báo cảnh báo nghiêm trọng, tuyệt đối không báo "thành công".
-          try{
-            await db.ref().update(updates);
-          }catch(writeErr){
-            try{
-              await inventoryAdjustBalanceAtomic(r.khoId, 'BTP', r.lsxId, -r.met);
-            }catch(rollbackErr){
-              console.error('PROM 11 CRITICAL: rollback inventory_balance thất bại sau khi ghi Tồn đầu WIP lỗi — cần đối chiếu thủ công NGAY.', {khoId:r.khoId, lsxId:r.lsxId, met:r.met, rollbackErr, writeErr});
-              throw new Error(`Ghi Tồn đầu WIP thất bại VÀ rollback tồn kho cũng thất bại (dòng ${done+1}) — tồn kho có thể đang lệch, cần kiểm tra thủ công NGAY: ${rollbackErr.message||rollbackErr}`);
+            // lotGenerateId() đếm dãy — CHỈ được gọi 1 LẦN cho dòng logic này, ngay khi vừa claim
+            // (chưa từng khoá identity trước đó); kết quả khoá lại vào marker (IDENTITY_ASSIGNED) để
+            // mọi lượt retry sau TÁI DÙNG đúng maLot này, không sinh thêm.
+            const { maLot } = await lotGenerateId(r.cdId);
+            const tenBomBtp = await lotResolveTenBtpTuBom(po, cd, mau);
+            const tenBtp = tenBomBtp || ((cd.ten_cd||'') + (mau ? ' - '+mau.ten_mau : ''));
+            const maBtp = tenBomBtp || cd.ma_cd || '';
+            const pendingObj = {
+              lsxId:r.lsxId, cdId:r.cdId, khoId:r.khoId, mauId:r.mauId, met:r.met, kg:r.kg, refCode:r.refCode, ghiChu:r.ghiChu, ngay,
+              maLot, tenBtp, maBtp,
+              lotKey:'wlt_'+rowRequestId, ledgerKey:'wlg_'+rowRequestId, auditKey:'wau_'+rowRequestId,
+            };
+            const assign = await openingMarkerAssignIdentity('opening_wip_request_marker', rowRequestId, pendingObj);
+            if(!assign.confirmed){
+              const e = new Error(`Không xác nhận được trạng thái dòng LSX "${lsx.ma_lsx||r.lsxId}" — vui lòng thử lại sau ít giây.`);
+              e.code='UNKNOWN_COMMIT'; throw e;
             }
-            throw writeErr;
+            marker = assign.marker;
           }
-
-          // UI-only, không ảnh hưởng tính đúng của tồn kho/LOT (mục X) — giữ nguyên .catch(()=>{}) như cũ.
-          if(lsx.trang_thai==='Chưa bắt đầu'){
-            await db.ref('lsx/'+r.lsxId).update({trang_thai:'Đang chạy'}).catch(()=>{});
-          }
+          // RESUME hoặc vừa CLAIMED — openingAdvanceRow() là NƠI DUY NHẤT tiến trạng thái, dùng chung
+          // với màn hình đối chiếu (openingReconcileContinue) để không có 2 bản logic lệch nhau.
+          await openingAdvanceRow('wip', rowRequestId, marker);
           done++;
         }
         toast(`✓ Đã tạo ${done} LOT Tồn đầu WIP.`);
         closeModal();
         renderTonKho(container);
       }catch(err){
-        errBox.innerHTML = `<div class="err-msg">⛔ Đã tạo được ${done}/${rows.length} LOT thì gặp lỗi: ${esc(err.message||String(err))}. Các LOT đã tạo thành công KHÔNG bị mất.</div>`;
+        errBox.innerHTML = `<div class="err-msg">⛔ Đã tạo được ${done}/${rows.length} LOT thì gặp lỗi: ${esc(err.message||String(err))}. Các LOT đã tạo thành công KHÔNG bị mất — chỉ cần bấm "Xác nhận" lại, hệ thống sẽ TỰ BỎ QUA các dòng đã tạo và chỉ tiếp tục phần còn thiếu.</div>`;
         submitBtn.disabled = false;
       }
     });
@@ -9146,6 +9471,11 @@ async function renderTonKho(container){
     const lydoWrap = document.getElementById('cnv-lydo-wrap');
     const soLuongInp = document.getElementById('cnv-soluong');
     let currentInfo = null; // {daCap, daTra, coTheTra}
+    // FIX-03 — requestId ổn định trong suốt 1 lần submit CẤP NVL thật (không đổi khi bấm lại/retry
+    // cùng submission do lỗi/mất response); reset về null khi request đã COMMITTED, để lần bấm KẾ
+    // TIẾP (submission mới, VD nhập số lượng khác rồi Xác nhận lại) luôn có identity riêng. CHỈ dùng
+    // cho action==='CAP' — TRA không đụng tới biến này (mục XVI FIX-03).
+    let nvlIssueRequestId = null;
 
     document.querySelectorAll('input[name="cnv-action"]').forEach(r=>{
       r.addEventListener('change', ()=>{
@@ -9236,7 +9566,41 @@ async function renderTonKho(container){
       // GATE 02 — chỉ dùng cho action==='TRA' (mục 16: KHÔNG đổi flow CAP). Token null nghĩa là chưa
       // giành lock hoặc không áp dụng (CAP) — finally bên dưới tự bỏ qua release khi token null.
       let lockToken = null;
+      // FIX-03 — tạo requestId MỘT LẦN cho lần submit CẤP NVL này (giữ nguyên nếu đang retry cùng
+      // submission trước đó chưa COMMITTED). Không dùng push key làm idempotency key (mục IV FIX-03).
+      if(action==='CAP' && !nvlIssueRequestId) nvlIssueRequestId = uid();
+      let nvlIssueLedgerKey = null;
       try{
+        if(action==='CAP'){
+          // FIX-03 — deterministic ledgerKey pre-generate TRƯỚC khi giữ chỗ balance, gắn vào marker
+          // ngay từ Begin() để Reconcile() sau này có bằng chứng để so khớp (mục VIII FIX-03).
+          nvlIssueLedgerKey = db.ref('kho_giao_dich').push().key;
+          const begin = await nvlIssueMarkerBegin(nvlIssueRequestId, { khoId, vtId, lotId, lsxId, soLuong, ledgerKey: nvlIssueLedgerKey });
+          if(begin.alreadyCommitted){
+            // Cùng requestId đã COMMITTED ở lượt trước (double-click/retry/mất response rồi bấm lại)
+            // — KHÔNG ghi gì thêm, trả lại đúng kết quả cũ (CASE A/E FIX-03 — return existing state).
+            nvlIssueRequestId = null; // request đã xong — lần bấm kế tiếp là submission MỚI.
+            toast(`✓ Đã xuất ${fmtNum(soLuong)} NVL cho LOT.`);
+            soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+            await renderInfo();
+            submitBtn.disabled = false;
+            return;
+          }
+          // FIX-03 (đóng đúng khoảng hở FIX-01B đã tìm ra) — đánh dấu "đã chạm bước có thể ảnh hưởng
+          // balance" NGAY TỪ ĐÂY, TRƯỚC KHI gọi inventoryAdjustBalanceAtomic() bên dưới. Nếu await
+          // này resolve, server CHẮC CHẮN đã có commit_started_at trước khi balance atomic được gọi;
+          // nếu reject do mất phản hồi, catch() bên dưới sẽ tự đọc lại marker THẲNG TỪ SERVER (không
+          // dùng cờ local) để biết chắc có nên coi là "đã chạm mốc" hay chưa.
+          const markResult = await nvlIssueMarkerMarkCommitStarted(nvlIssueRequestId);
+          if(!markResult.confirmed){
+            // Transaction resolve nhưng snapshot server KHÔNG có commit_started_at (no-op hiếm do va
+            // chạm) — TUYỆT ĐỐI KHÔNG được mù quáng tiếp tục sang inventoryAdjustBalanceAtomic(). Ném
+            // lỗi để catch() bên dưới tự đọc lại marker từ server và quyết định theo CASE A/B/C-D.
+            const err = new Error('Yêu cầu Cấp NVL này chưa xác nhận được trạng thái bắt đầu lưu trên máy chủ — vui lòng bấm "Xác nhận" lại.');
+            err.code = 'MARK_COMMIT_NOT_CONFIRMED';
+            throw err;
+          }
+        }
         if(action==='TRA'){
           // GATE 02 mục 5/15 — serialize TRA theo đúng khoá LOT+NVL, acquire TRƯỚC khi đọc lại ledger
           // để quyết định (để request thứ 2 sau khi giành lock sẽ thấy giao dịch của request thứ 1).
@@ -9274,19 +9638,91 @@ async function renderTonKho(container){
           is_active:true, created_at:Date.now(),
         };
         if(action==='TRA') data.ly_do_tra = lyDo || null; // field MỚI, additive — Phần U
-        try{
-          await db.ref('kho_giao_dich').push(data);
-        }catch(e){
-          await inventoryAdjustBalanceAtomic(khoId, 'NVL', vtId, -delta).catch(()=>{});
-          throw e;
+        if(action==='CAP') data.request_id = nvlIssueRequestId; // field MỚI, additive — dùng để Reconcile() so khớp bằng chứng (mục VIII FIX-03), không đổi ý nghĩa field cũ.
+        if(action==='CAP'){
+          // FIX-03 (mục IX) — ghi ledger + marker COMMITTED trong CÙNG 1 update() đa-path: Firebase
+          // update() nhiều path là atomic thật (không có "ghi 1 phần"), nên ledger và marker COMMITTED
+          // chỉ cùng tồn tại hoặc cùng không tồn tại trên server. Dùng đúng nvlIssueLedgerKey đã
+          // pre-generate ở trên — KHÔNG push() rời (mục VIII: tránh tạo record thứ 2 khi retry).
+          const updates = {};
+          updates['kho_giao_dich/'+nvlIssueLedgerKey] = data;
+          updates['nvl_issue_request_marker/'+nvlIssueRequestId+'/status'] = 'COMMITTED';
+          updates['nvl_issue_request_marker/'+nvlIssueRequestId+'/result'] = { khoId, vtId, lotId, lsxId, soLuong, ledgerKey: nvlIssueLedgerKey };
+          updates['nvl_issue_request_marker/'+nvlIssueRequestId+'/committed_at'] = Date.now();
+          // KHÔNG catch+rollback mù ở đây: nếu update() reject (mất phản hồi mạng), catch() bên ngoài
+          // sẽ tự đọc lại marker THẲNG TỪ SERVER để quyết định CASE A/B/C-D — không rollback balance,
+          // không retry balance (mục VII/X FIX-03).
+          await db.ref().update(updates);
+          nvlIssueRequestId = null; // COMMITTED — lần bấm kế tiếp bắt đầu submission MỚI.
+          toast(`✓ Đã xuất ${fmtNum(soLuong)} NVL cho LOT.`);
+          soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+          await renderInfo();
+        } else {
+          try{
+            await db.ref('kho_giao_dich').push(data);
+          }catch(e){
+            await inventoryAdjustBalanceAtomic(khoId, 'NVL', vtId, -delta).catch(()=>{});
+            throw e;
+          }
+          // GATE 02 mục 15 — release lock TRƯỚC renderInfo() theo đúng thứ tự yêu cầu (finally bên
+          // dưới vẫn còn nhưng lúc đó token đã null nên chỉ là no-op an toàn, không release 2 lần thật).
+          if(lockToken){ await lotNvlReturnLockRelease(lotId, vtId, lockToken); lockToken = null; }
+          toast(`✓ Đã ghi nhận trả ${fmtNum(soLuong)} NVL về kho.`);
+          soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+          await renderInfo();
         }
-        // GATE 02 mục 15 — release lock TRƯỚC renderInfo() theo đúng thứ tự yêu cầu (finally bên dưới
-        // vẫn còn nhưng lúc đó token đã null nên chỉ là no-op an toàn, không release 2 lần thật sự).
-        if(action==='TRA' && lockToken){ await lotNvlReturnLockRelease(lotId, vtId, lockToken); lockToken = null; }
-        toast(action==='CAP' ? `✓ Đã xuất ${fmtNum(soLuong)} NVL cho LOT.` : `✓ Đã ghi nhận trả ${fmtNum(soLuong)} NVL về kho.`);
-        soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
-        await renderInfo();
       }catch(err){
+        if(action==='CAP' && nvlIssueRequestId){
+          // FIX-03 — KHÔNG rollback mù, KHÔNG retry balance mù: đọc lại marker THẲNG TỪ SERVER (không
+          // cache) để lấy bằng chứng thật trước khi quyết định (y hệt pattern đã audit ở
+          // qrNhapMarkerBegin()/FIX-01B cho NHẬP QR — không phát minh cơ chế mới, mục VI/VIII FIX-03).
+          let serverMarker;
+          try{
+            const markerSnap = await db.ref('nvl_issue_request_marker/'+nvlIssueRequestId).once('value');
+            serverMarker = markerSnap.val();
+          }catch(readErr){
+            // Không đọc được server (mất mạng cả lúc đọc lại) — KHÔNG được coi là "chắc chắn chưa
+            // commit" chỉ vì không đọc được. An toàn dữ liệu quan trọng hơn dọn marker cho đẹp.
+            errBox.innerHTML = `<div class="err-msg">⛔ Không xác nhận được kết quả Cấp NVL (mất phản hồi mạng, kể cả khi kiểm tra lại) — hệ thống KHÔNG tự hoàn tác vì giao dịch có thể đã được lưu ở máy chủ. Vui lòng bấm "Xác nhận" lại (giữ nguyên số liệu) để hệ thống tự đối chiếu — KHÔNG đóng modal và nhập lại từ đầu.</div>`;
+            submitBtn.disabled = false;
+            return;
+          }
+          if(serverMarker && serverMarker.status==='COMMITTED'){
+            // CASE A/E — server xác nhận request này ĐÃ COMMITTED thật (update() cuối thực ra đã
+            // thành công, chỉ mất phản hồi cho client) — không rollback, không ghi lại, báo hoàn tất.
+            nvlIssueRequestId = null;
+            toast(`✓ Đã xuất ${fmtNum(soLuong)} NVL cho LOT.`);
+            soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+            await renderInfo();
+            submitBtn.disabled = false;
+            return;
+          }
+          if(serverMarker && serverMarker.commit_started_at){
+            // CASE B/C — server xác nhận ĐÃ chạm mốc có-thể-ảnh-hưởng-balance nhưng CHƯA COMMITTED.
+            // Đối chiếu bằng chứng ledger thật trước khi kết luận; nếu vẫn chưa xác nhận được, giữ
+            // nguyên UNKNOWN_COMMIT — KHÔNG rollback, KHÔNG xoá marker, KHÔNG gọi lại balance.
+            const rec = await nvlIssueMarkerReconcile(nvlIssueRequestId, serverMarker).catch(()=>({state:'UNKNOWN_COMMIT'}));
+            if(rec.state==='COMMITTED'){
+              nvlIssueRequestId = null;
+              toast(`✓ Đã xuất ${fmtNum(soLuong)} NVL cho LOT.`);
+              soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+              await renderInfo();
+              submitBtn.disabled = false;
+              return;
+            }
+            errBox.innerHTML = `<div class="err-msg">⛔ Không xác nhận được kết quả Cấp NVL (mất phản hồi mạng ngay khi đang lưu) — hệ thống KHÔNG tự hoàn tác vì giao dịch có thể đã được lưu ở máy chủ. Vui lòng bấm "Xác nhận" lại (giữ nguyên số liệu, cùng LOT/NVL/Kho) để hệ thống tự đối chiếu — KHÔNG đóng modal và nhập lại từ đầu.</div>`;
+            submitBtn.disabled = false;
+            return;
+          }
+          // CASE D — server xác nhận CHƯA có commit_started_at (marker ACTIVE hoặc không còn tồn tại)
+          // → bước có-thể-ảnh-hưởng-balance CHẮC CHẮN CHƯA từng được thử cho request này → an toàn để
+          // giải phóng marker (hàm tự kiểm tra lại, không xoá nếu vừa có commit_started_at do race) để
+          // lần bấm lại KẾ TIẾP không bị chặn nhầm bởi chính request lỗi của mình.
+          await nvlIssueMarkerFail(nvlIssueRequestId).catch(()=>{});
+          errBox.innerHTML = `<div class="err-msg">⛔ ${esc(err.message||String(err))}</div>`;
+          submitBtn.disabled = false;
+          return;
+        }
         errBox.innerHTML = `<div class="err-msg">⛔ ${esc(err.message||String(err))}</div>`;
       }finally{
         if(lockToken) await lotNvlReturnLockRelease(lotId, vtId, lockToken);
@@ -10377,6 +10813,122 @@ async function lotNvlReturnLockRelease(lotId, vtId, myToken){
   if(!myToken) return;
   await db.ref(`lot_nvl_return_lock/${lotId}/${vtId}`).transaction(cur=>{
     if(!cur || cur.token !== myToken) return cur; // không còn thuộc request này → không đụng vào.
+    return null;
+  }).catch(()=>{});
+}
+
+// ================================================================
+// FIX-03 — GAP ĐÃ PHÁT HIỆN: "Cấp NVL" (action==='CAP' trong openCapTraNvlModal(), Xuất NVL cho LOT)
+// TRƯỚC ĐÂY chỉ có UI disable trước await (chống double-click) — KHÔNG có bất kỳ lock/marker
+// server-side nào. Double-click/network retry/response-loss/2-tab/reload giữa chừng có thể tạo 2 lần
+// inventoryAdjustBalanceAtomic() + 2 bản ghi kho_giao_dich cho CÙNG 1 lần cấp thật sự (UI disable chỉ
+// là UX protection, KHÔNG phải bằng chứng server — đúng root cause được audit xác định trước FIX-03).
+//
+// Vá theo ĐÚNG Ý TƯỞNG đã có sẵn và đã qua audit trong chính app này cho NHẬP QR
+// (qr_nhap_request_marker, FIX-01/FIX-01B — xem gần dòng ~18960) — KHÔNG phát minh cơ chế mới: 1
+// requestId ổn định trong suốt 1 lần submit thật (không đổi khi bấm lại/retry cùng submission, chỉ
+// tạo MỚI sau khi submission trước đã COMMITTED), marker ACTIVE → (commit_started_at) → COMMITTED,
+// mốc commit_started_at đặt TRƯỚC inventoryAdjustBalanceAtomic() (đóng đúng khoảng hở mà FIX-01B đã
+// tìm ra — nếu đặt SAU balance, response-loss ngay sau balance sẽ khiến marker bị coi "chưa chạm gì"
+// và bị xoá, cho phép balance bị cộng/trừ lần 2 khi bấm lại), ghi ledger + marker COMMITTED trong
+// CÙNG 1 update() đa-path (atomic — Firebase update() nhiều path KHÔNG có trạng thái "ghi 1 phần").
+// Lưu ở path RIÊNG `nvl_issue_request_marker/{requestId}` — KHÔNG dùng chung
+// qr_nhap_request_marker/lot_request_marker để tránh trộn lẫn 2 state-machine có schema evidence
+// khác nhau (mục XIII FIX-03: minimal, additive, không đổi schema hiện có).
+//
+// CHỈ áp dụng cho action==='CAP'. TRẢ NVL (action==='TRA') GIỮ NGUYÊN 100% — đã có lock riêng
+// lot_nvl_return_lock từ GATE 02, ngoài phạm vi FIX-03 (mục XVI: không sửa TRẢ NVL).
+// ================================================================
+const NVL_ISSUE_MARKER_ABANDON_MS = 120000; // cùng độ lớn với QR_NHAP_MARKER_ABANDON_MS/GATE 01.1 — không lock vĩnh viễn.
+
+// Bằng chứng DUY NHẤT dùng để kết luận COMMITTED: đọc thẳng server (không cache/không suy đoán theo
+// thời gian/tuổi marker — mục VII/X FIX-03). So khớp đúng field lot_san_xuat_id/vat_tu_id (KHÔNG
+// dùng lot_id — xem ghi chú "field MỚI lot_san_xuat_id" ngay phía trên openCapTraNvlModal()).
+async function nvlIssueMarkerReadLedgerEvidence(requestId, marker){
+  const ledgerKey = marker.pending_ledger_key || null;
+  if(!ledgerKey) return { ledgerExists:false, ledgerValid:false };
+  const snap = await db.ref('kho_giao_dich/'+ledgerKey).once('value');
+  const v = snap.val();
+  const valid = !!v && v.request_id===requestId && v.lot_san_xuat_id===marker.pending_lot_id
+    && v.vat_tu_id===marker.pending_vt_id && v.kho_id===marker.pending_kho_id
+    && Math.abs(Number(v.so_luong||0) - Number(marker.pending_so_luong||0)) < 0.0005;
+  return { ledgerExists: !!v, ledgerValid: valid };
+}
+
+// Đối chiếu 1 requestId đang ở vùng-xám (đã stamp commit_started_at nhưng marker chưa COMMITTED)
+// bằng bằng chứng THẬT trên server — KHÔNG BAO GIỜ dùng timeout/tuổi marker để kết luận
+// COMMITTED/FAILED (mục V/VII/X FIX-03).
+async function nvlIssueMarkerReconcile(requestId, marker){
+  const ev = await nvlIssueMarkerReadLedgerEvidence(requestId, marker);
+  if(ev.ledgerValid){
+    const result = { khoId: marker.pending_kho_id, vtId: marker.pending_vt_id, lotId: marker.pending_lot_id,
+      lsxId: marker.pending_lsx_id, soLuong: marker.pending_so_luong, ledgerKey: marker.pending_ledger_key };
+    await db.ref('nvl_issue_request_marker/'+requestId).transaction(cur=>{
+      if(!cur || cur.status==='COMMITTED') return cur;
+      return Object.assign({}, cur, { status:'COMMITTED', result, committed_at: Date.now() });
+    }).catch(()=>{});
+    return { state:'COMMITTED', result };
+  }
+  // Không thấy ledger — KHÔNG được kết luận "chưa commit" (update() cũ có thể vẫn đang/sẽ tới server
+  // sau đúng thời điểm đọc này) — giữ nguyên UNKNOWN_COMMIT, chặn ghi/balance mới (fail-safe).
+  return { state:'UNKNOWN_COMMIT' };
+}
+
+async function nvlIssueMarkerBegin(requestId, identity){
+  const now = Date.now();
+  const preSnap = await db.ref('nvl_issue_request_marker/'+requestId).once('value'); // đọc thẳng server.
+  const preVal = preSnap.val();
+  if(preVal && preVal.status==='COMMITTED') return { alreadyCommitted:true, result: preVal.result||null };
+  if(preVal && preVal.commit_started_at){
+    const rec = await nvlIssueMarkerReconcile(requestId, preVal);
+    if(rec.state==='COMMITTED') return { alreadyCommitted:true, result: rec.result };
+    const err = new Error('Yêu cầu Cấp NVL này đang ở trạng thái CHƯA XÁC ĐỊNH (có thể do mất mạng ngay lúc đang lưu) — hệ thống KHÔNG tạo giao dịch cấp mới cho tới khi xác định rõ đã lưu hay chưa. Vui lòng bấm "Xác nhận" lại sau ít giây để hệ thống tự đối chiếu.');
+    err.code = 'UNKNOWN_COMMIT';
+    throw err;
+  }
+  const txResult = await db.ref('nvl_issue_request_marker/'+requestId).transaction(cur=>{
+    if(cur && cur.status==='COMMITTED') return cur; // đã xong — để caller đọc lại kết quả cũ.
+    if(cur && cur.commit_started_at) return; // ABORT — vừa reconcile ở trên nhưng chưa kịp cập nhật/1 nhánh khác đang xử lý; thử lại ở lượt sau.
+    if(cur && cur.status==='ACTIVE'){
+      const age = now - Number(cur.started_at||0);
+      if(age < NVL_ISSUE_MARKER_ABANDON_MS) return; // ABORT — request NÀY (cùng requestId) đang thực sự chạy ở nơi khác (vd 2 click gần như đồng thời).
+    }
+    return { status:'ACTIVE', started_at: now, pending_kho_id: identity.khoId, pending_vt_id: identity.vtId,
+      pending_lot_id: identity.lotId, pending_lsx_id: identity.lsxId, pending_so_luong: identity.soLuong,
+      pending_ledger_key: identity.ledgerKey };
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  if(val && val.status==='COMMITTED') return { alreadyCommitted:true, result: val.result||null };
+  if(!txResult || !txResult.committed){
+    if(val && val.commit_started_at){
+      const err = new Error('Yêu cầu Cấp NVL này đang ở trạng thái CHƯA XÁC ĐỊNH — vui lòng thử lại sau ít giây.');
+      err.code = 'UNKNOWN_COMMIT'; throw err;
+    }
+    const err = new Error('Yêu cầu Cấp NVL này đang được xử lý — vui lòng đợi trong giây lát, không bấm lại.');
+    err.code = 'REQUEST_IN_PROGRESS'; throw err;
+  }
+  return { alreadyCommitted:false };
+}
+
+// Trả về BẰNG CHỨNG THẬT rằng server hiện đã có commit_started_at hay chưa — `await transaction()`
+// resolve KHÔNG có nghĩa field đã được ghi (transaction có thể "commit" một no-op do va chạm hiếm).
+// Caller BẮT BUỘC kiểm tra `confirmed` trước khi được phép gọi inventoryAdjustBalanceAtomic() (đúng
+// bài học FIX-01B — không được coi việc gọi hàm này không throw là đủ bằng chứng).
+async function nvlIssueMarkerMarkCommitStarted(requestId){
+  const txResult = await db.ref('nvl_issue_request_marker/'+requestId).transaction(cur=>{
+    if(!cur || cur.status!=='ACTIVE' || cur.commit_started_at) return cur;
+    return Object.assign({}, cur, { commit_started_at: Date.now() });
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return { confirmed: !!(val && val.commit_started_at) };
+}
+
+// Chỉ giải phóng marker khi CHẮC CHẮN chưa chạm bước ghi chính (chưa có commit_started_at) — nếu đã
+// chạm, giữ nguyên để lượt bấm lại KẾ TIẾP (cùng requestId) tự đối chiếu bằng chứng server; KHÔNG bao
+// giờ tự xoá "vùng xám" (mục X/XI FIX-03).
+async function nvlIssueMarkerFail(requestId){
+  await db.ref('nvl_issue_request_marker/'+requestId).transaction(cur=>{
+    if(!cur || cur.status==='COMMITTED' || cur.commit_started_at) return cur;
     return null;
   }).catch(()=>{});
 }
@@ -18659,6 +19211,118 @@ async function lotSuggestNextStageKho(po, currentCongDoanId){
   return foundKho ? { congDoanId: nextCongDoanId, kho: foundKho } : null;
 }
 
+// ================================================================
+// FIX-01 — IDEMPOTENCY MARKER cho NHẬP QR (Lot Action Modal, actionType==='NHAP').
+// AUDIT-03-FINAL xác định: LOT_ACTION_CONFIG.NHAP.needCheck=false → NHẬP QR không đi qua bất kỳ
+// lock/state-check nào chống lặp giao dịch (khác XUAT_DUNG/CHUYEN_CD/XUAT_KHO đã có
+// inventoryAdjustLotBalanceAtomic() theo LOT) — network-retry/mất response/2-tab có thể tạo 2
+// Inventory Transaction + tăng Inventory Balance 2 lần cho cùng 1 lần nhập thực tế.
+//
+// KHÔNG dùng inventoryAdjustLotBalanceAtomic() (khoá "tồn LOT theo mét") cho NHẬP: hàm đó chỉ có ý
+// nghĩa cho các thao tác làm GIẢM tồn LOT — NHẬP là bổ sung, không đụng tồn LOT, ép dùng lock đó sẽ
+// sai semantics nghiệp vụ (không đổi needCheck — đúng cảnh báo PROM FIX-01 mục V).
+//
+// Thay vào đó: tái sử dụng ĐÚNG Ý TƯỞNG của lot_request_marker/GATE 01.1 (đã có sẵn cho "Ghi nhận
+// SX") — 1 requestId ổn định trong suốt 1 lần submit (KHÔNG đổi khi bấm lại/retry cùng modal), marker
+// ACTIVE → (commit_started_at) → COMMITTED, ghi COMMITTED CÙNG 1 update() đa-path với chính
+// ledger/audit — nhưng THU GỌN cho đúng shape ghi của NHẬP QR (1 kho_giao_dich + 1 lot_audit_log,
+// không có bao_cong/allocation nên không gọi thẳng lsxQtyGate*() — evidence của các hàm đó đọc
+// bao_cong/allocation đặc thù cho Ghi nhận SX, không áp dụng cho NHẬP QR). Lưu ở path RIÊNG
+// `qr_nhap_request_marker/{requestId}` — KHÔNG dùng chung `lot_request_marker` để tránh trộn lẫn 2
+// state-machine có schema evidence khác nhau (mục XIII: chọn convention phù hợp, không collision).
+// ================================================================
+const QR_NHAP_MARKER_ABANDON_MS = 120000; // trần tuyệt đối vùng-xám TRƯỚC khi chạm bước ghi chính (cùng độ lớn với GATE 01.1) — không lock vĩnh viễn.
+
+// Đọc thẳng server (không cache) để xác nhận ledger của requestId này đã thực sự tồn tại & đúng
+// identity hay chưa — đây là BẰNG CHỨNG duy nhất được dùng để kết luận COMMITTED (mục VII/X: không
+// suy đoán theo thời gian/tuổi marker).
+async function qrNhapMarkerReadLedgerEvidence(requestId, marker){
+  const ledgerKey = marker.pending_ledger_key || null;
+  if(!ledgerKey) return { ledgerExists:false, ledgerValid:false };
+  const snap = await db.ref('kho_giao_dich/'+ledgerKey).once('value');
+  const v = snap.val();
+  const valid = !!v && v.request_id===requestId && v.lot_id===marker.pending_lot_id
+    && v.kho_id===marker.pending_kho_id && Math.abs(Number(v.so_luong||0) - Number(marker.pending_so_luong||0)) < 0.0005;
+  return { ledgerExists: !!v, ledgerValid: valid };
+}
+
+// Đối chiếu 1 requestId đang ở vùng-xám (đã stamp commit_started_at nhưng marker chưa COMMITTED) bằng
+// bằng chứng THẬT trên server — KHÔNG BAO GIỜ dùng timeout/tuổi marker để kết luận COMMITTED/FAILED.
+async function qrNhapMarkerReconcile(requestId, marker){
+  const ev = await qrNhapMarkerReadLedgerEvidence(requestId, marker);
+  if(ev.ledgerValid){
+    const result = { lotId: marker.pending_lot_id, ledgerKey: marker.pending_ledger_key, khoId: marker.pending_kho_id, soLuong: marker.pending_so_luong };
+    await db.ref('qr_nhap_request_marker/'+requestId).transaction(cur=>{
+      if(!cur || cur.status==='COMMITTED') return cur;
+      return Object.assign({}, cur, { status:'COMMITTED', result, committed_at: Date.now() });
+    }).catch(()=>{});
+    return { state:'COMMITTED', result };
+  }
+  // Không thấy ledger — KHÔNG được kết luận "chưa commit" (update() cũ có thể vẫn đang/sẽ tới server
+  // sau đúng thời điểm đọc này) — giữ nguyên UNKNOWN_COMMIT, chặn ghi mới (fail-safe, mục VII/X).
+  return { state:'UNKNOWN_COMMIT' };
+}
+
+async function qrNhapMarkerBegin(requestId, identity){
+  const now = Date.now();
+  const preSnap = await db.ref('qr_nhap_request_marker/'+requestId).once('value'); // đọc thẳng server.
+  const preVal = preSnap.val();
+  if(preVal && preVal.status==='COMMITTED') return { alreadyCommitted:true, result: preVal.result||null };
+  if(preVal && preVal.commit_started_at){
+    const rec = await qrNhapMarkerReconcile(requestId, preVal);
+    if(rec.state==='COMMITTED') return { alreadyCommitted:true, result: rec.result };
+    const err = new Error('Yêu cầu Nhập kho này đang ở trạng thái CHƯA XÁC ĐỊNH (có thể do mất mạng ngay lúc đang lưu) — hệ thống KHÔNG tạo giao dịch nhập mới cho tới khi xác định rõ đã lưu hay chưa. Vui lòng bấm "Xác nhận" lại sau ít giây để hệ thống tự đối chiếu.');
+    err.code = 'UNKNOWN_COMMIT';
+    throw err;
+  }
+  const txResult = await db.ref('qr_nhap_request_marker/'+requestId).transaction(cur=>{
+    if(cur && cur.status==='COMMITTED') return cur; // đã xong — để caller đọc lại kết quả cũ.
+    if(cur && cur.commit_started_at) return; // ABORT — vừa reconcile ở trên nhưng chưa kịp cập nhật/1 nhánh khác đang xử lý; thử lại ở lượt sau.
+    if(cur && cur.status==='ACTIVE'){
+      const age = now - Number(cur.started_at||0);
+      if(age < QR_NHAP_MARKER_ABANDON_MS) return; // ABORT — request NÀY (cùng requestId) đang thực sự chạy ở nơi khác (vd 2 click gần như đồng thời).
+    }
+    return { status:'ACTIVE', started_at: now, pending_lot_id: identity.lotId, pending_kho_id: identity.khoId,
+      pending_so_luong: identity.soLuong, pending_ledger_key: identity.ledgerKey };
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  if(val && val.status==='COMMITTED') return { alreadyCommitted:true, result: val.result||null };
+  if(!txResult || !txResult.committed){
+    if(val && val.commit_started_at){
+      const err = new Error('Yêu cầu Nhập kho này đang ở trạng thái CHƯA XÁC ĐỊNH — vui lòng thử lại sau ít giây.');
+      err.code = 'UNKNOWN_COMMIT'; throw err;
+    }
+    const err = new Error('Yêu cầu Nhập kho này đang được xử lý — vui lòng đợi trong giây lát, không bấm lại.');
+    err.code = 'REQUEST_IN_PROGRESS'; throw err;
+  }
+  return { alreadyCommitted:false };
+}
+
+// FIX-01B-REPAIR — trả về BẰNG CHỨNG THẬT (đọc từ snapshot do chính Firebase transaction trả về, không
+// suy đoán) rằng server hiện đã có commit_started_at hay chưa. `await transaction()` resolve KHÔNG có
+// nghĩa là commit_started_at đã được ghi — transaction có thể "commit" một no-op (callback trả về `cur`
+// nguyên vẹn khi điều kiện không khớp, ví dụ do va chạm hiếm với 1 nhánh khác). Caller BẮT BUỘC kiểm tra
+// field `confirmed` trước khi được phép tiếp tục sang inventoryAdjustBalanceAtomic() — không được coi
+// việc gọi hàm này (không throw) là đủ bằng chứng.
+async function qrNhapMarkerMarkCommitStarted(requestId){
+  const txResult = await db.ref('qr_nhap_request_marker/'+requestId).transaction(cur=>{
+    if(!cur || cur.status!=='ACTIVE' || cur.commit_started_at) return cur;
+    return Object.assign({}, cur, { commit_started_at: Date.now() });
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return { confirmed: !!(val && val.commit_started_at) };
+}
+
+// Chỉ giải phóng marker khi CHẮC CHẮN chưa chạm bước ghi chính (chưa có commit_started_at) — nếu đã
+// chạm, giữ nguyên để lượt bấm lại KẾ TIẾP (cùng requestId) tự đối chiếu bằng chứng server; KHÔNG bao
+// giờ tự xoá "vùng xám" (mục X/XI).
+async function qrNhapMarkerFail(requestId){
+  await db.ref('qr_nhap_request_marker/'+requestId).transaction(cur=>{
+    if(!cur || cur.status==='COMMITTED' || cur.commit_started_at) return cur;
+    return null;
+  }).catch(()=>{});
+}
+
 const LOT_ACTION_CONFIG = {
   NHAP:       { title:'📥 Nhập kho bổ sung', loaiGD:'Nhập',            needCheck:false, ghiChuMac:'Nhập kho bổ sung qua Scan QR' },
   XUAT_DUNG:  { title:'📤 Xuất dùng (tiêu thụ nội bộ)', loaiGD:'Xuất', needCheck:true,  ghiChuMac:'Xuất dùng — tiêu thụ nội bộ qua Scan QR' },
@@ -18668,6 +19332,10 @@ const LOT_ACTION_CONFIG = {
 
 async function openLotActionModal(actionType, lotId, lot, cd, po, lsx, onDone){
   const cfg = LOT_ACTION_CONFIG[actionType];
+  // FIX-01 — requestId ổn định trong suốt vòng đời modal này (KHÔNG đổi khi bấm lại/retry cùng 1 lần
+  // mở modal — đúng mục IV PROM FIX-01). CHỈ tạo cho NHAP (actionType khác giữ nguyên null, không bị
+  // đụng tới ở bất kỳ đâu bên dưới).
+  const qrNhapRequestId = actionType==='NHAP' ? uid() : null;
   const [khoSnap, tonLot] = await Promise.all([ db.ref('master/kho').once('value'), inventoryCalculateLotBalance(lotId) ]);
   let khoList = []; khoSnap.forEach(ch=>{ const v=ch.val(); if(v.is_active!==false && (v.loai_kho==='BTP'||v.loai_kho==='TP')) khoList.push({__id:ch.key, ...v}); });
 
@@ -18730,12 +19398,52 @@ async function openLotActionModal(actionType, lotId, lot, cd, po, lsx, onDone){
     const isChuyenCD = actionType==='CHUYEN_CD';
     const khoNguonId = isChuyenCD ? lot.kho_hien_tai_id : null;
     let atomicApplied = false, dstAtomicApplied = false, lotLockApplied = false;
+    // FIX-01 — idempotency cho NHẬP QR: sinh sẵn ledgerKey/auditKey TRƯỚC khi ghi gì (giống hệt cách
+    // Quick Export/Chuyển công đoạn đã làm ở nơi khác), rồi "đặt cọc" requestId qua qrNhapMarkerBegin()
+    // TRƯỚC bước atomic số dư. Biến qrNhapCommitStarted đánh dấu mốc "đã chạm bước ghi chính" — từ mốc
+    // này trở đi, lỗi ở catch KHÔNG được tự rollback (mục XI), phải để lượt bấm lại sau tự đối chiếu.
+    let qrNhapLedgerKey = null, qrNhapAuditKey = null, qrNhapCommitStarted = false;
     try{
       if(isChuyenCD && !khoNguonId){
         throw new Error('LOT chưa xác định kho hiện tại (kho_hien_tai_id trống) — không thể xác định kho nguồn để chuyển.');
       }
       if(isChuyenCD && khoId===khoNguonId){
         throw new Error('Kho đích trùng với kho hiện tại của LOT — vui lòng chọn kho khác.');
+      }
+      if(qrNhapRequestId){
+        qrNhapLedgerKey = db.ref('kho_giao_dich').push().key;
+        qrNhapAuditKey = db.ref('lot_audit_log').push().key;
+        const begin = await qrNhapMarkerBegin(qrNhapRequestId, { lotId, khoId, soLuong, ledgerKey: qrNhapLedgerKey });
+        if(begin.alreadyCommitted){
+          // Cùng requestId đã COMMITTED ở lượt trước (double-click/retry/mất response rồi bấm lại
+          // trong cùng modal) — KHÔNG ghi gì thêm, trả lại đúng kết quả cũ (mục IV "RETURN EXISTING
+          // RESULT"). Không chạm inventoryAdjustBalanceAtomic/ledger/audit lần thứ 2.
+          toast('Đã ghi nhận giao dịch.');
+          closeModal();
+          if(onDone) onDone();
+          return;
+        }
+        // FIX-01B (đóng Finding #1) — đánh dấu "đã chạm bước có thể ảnh hưởng balance" NGAY TỪ ĐÂY,
+        // TRƯỚC KHI gọi inventoryAdjustBalanceAtomic() bên dưới. Trước FIX-01B mốc này đặt SAU bước
+        // balance (ngay trước update() cuối) — để lộ khoảng trống response-loss NGAY SAU balance atomic
+        // mà marker vẫn bị coi là "chưa chạm gì" → qrNhapMarkerFail() xoá marker → bấm lại cùng
+        // requestId → inventoryAdjustBalanceAtomic() được gọi LẦN NỮA → cộng balance 2 lần. Đặt mốc ở
+        // đây đóng đúng khoảng trống đó: nếu await bên dưới resolve, server CHẮC CHẮN đã có
+        // commit_started_at trước khi balance atomic được gọi; nếu await bên dưới reject do mất phản
+        // hồi, catch() sẽ tự đọc lại marker THẲNG TỪ SERVER (không dùng cờ local — đóng Finding #2) để
+        // biết chắc có nên coi là "đã chạm mốc" hay chưa trước khi quyết định rollback/xoá marker.
+        const markResult = await qrNhapMarkerMarkCommitStarted(qrNhapRequestId);
+        qrNhapCommitStarted = true;
+        if(!markResult.confirmed){
+          // FIX-01B-REPAIR — transaction resolve nhưng snapshot server trả về KHÔNG có commit_started_at
+          // (no-op hiếm do va chạm) — TUYỆT ĐỐI KHÔNG được mù quáng tiếp tục sang
+          // inventoryAdjustBalanceAtomic() vì chưa có bằng chứng boundary đã tồn tại trên server. Ném lỗi
+          // để catch() bên dưới tự đọc lại marker từ server và quyết định theo đúng CASE A/B/C-D — không
+          // có đường nào từ đây rơi thẳng xuống bước balance.
+          const err = new Error('Yêu cầu Nhập kho này chưa xác nhận được trạng thái bắt đầu lưu trên máy chủ — vui lòng bấm "Xác nhận" lại.');
+          err.code = 'MARK_COMMIT_NOT_CONFIRMED';
+          throw err;
+        }
       }
       if(isGiam){
         // Chặn xuất vượt tồn của chính LOT (chặt hơn tồn gộp theo LSX — XIX) — kiểm tra nhanh trước
@@ -18765,8 +19473,8 @@ async function openLotActionModal(actionType, lotId, lot, cd, po, lsx, onDone){
         await inventoryAdjustBalanceAtomic(khoId, 'BTP', lot.lsx_id, soLuong);
         atomicApplied = true;
       }
-      const ledgerKey = db.ref('kho_giao_dich').push().key;
-      const auditKey = db.ref('lot_audit_log').push().key;
+      const ledgerKey = qrNhapRequestId ? qrNhapLedgerKey : db.ref('kho_giao_dich').push().key;
+      const auditKey = qrNhapRequestId ? qrNhapAuditKey : db.ref('lot_audit_log').push().key;
       const updates = {};
       updates['kho_giao_dich/'+ledgerKey] = {
         loai_giao_dich: cfg.loaiGD, loai_hang:'BTP', kho_id: isChuyenCD ? khoNguonId : khoId,
@@ -18780,6 +19488,9 @@ async function openLotActionModal(actionType, lotId, lot, cd, po, lsx, onDone){
         // điền lot_id thành phẩm vào field này khi Ghi nhận SX thành công (XLII). kho_doi_ung_id (đích)
         // = trường hiện có, tái sử dụng đúng cơ chế 'Chuyển kho' (B2 FIX).
         ...(isChuyenCD ? { kho_doi_ung_id: khoId, da_gan_cho_lot_ket_qua: null } : {}),
+        // FIX-01 — field MỚI, additive, CHỈ có khi ghi từ NHẬP QR (qrNhapRequestId khác null với mọi
+        // action khác) — phục vụ đối chiếu idempotency, không đổi ý nghĩa các field cũ (mục XIII/XIV).
+        ...(qrNhapRequestId ? { request_id: qrNhapRequestId } : {}),
       };
       updates['lot_audit_log/'+auditKey] = {
         lot_id:lotId, action:actionType,
@@ -18791,11 +19502,70 @@ async function openLotActionModal(actionType, lotId, lot, cd, po, lsx, onDone){
         updates['production_lot/'+lotId+'/kho_hien_tai_id'] = khoId;
         if(khoRow && khoRow.cong_doan_id) updates['production_lot/'+lotId+'/cong_doan_hien_tai_id'] = khoRow.cong_doan_id;
       }
+      if(qrNhapRequestId){
+        // FIX-01B — mốc "đã chạm bước ghi chính" giờ đã đặt SỚM HƠN, ngay sau qrNhapMarkerBegin() và
+        // TRƯỚC bước balance atomic (xem đoạn trên) — không cần gọi lại qrNhapMarkerMarkCommitStarted()
+        // ở đây nữa. Chỉ còn cần thêm marker COMMITTED vào CÙNG 1 update() đa-path với chính
+        // ledger/audit — Firebase update() nhiều path là atomic (không có "ghi 1 phần"), nên marker
+        // COMMITTED và ledger chỉ cùng tồn tại hoặc cùng không tồn tại trên server (GATE 01.1 IV).
+        updates['qr_nhap_request_marker/'+qrNhapRequestId+'/status'] = 'COMMITTED';
+        updates['qr_nhap_request_marker/'+qrNhapRequestId+'/result'] = { lotId, ledgerKey, khoId, soLuong };
+        updates['qr_nhap_request_marker/'+qrNhapRequestId+'/committed_at'] = Date.now();
+      }
       await db.ref().update(updates);
       toast('Đã ghi nhận giao dịch.');
       closeModal();
       if(onDone) onDone();
     }catch(err){
+      if(qrNhapRequestId){
+        // FIX-01B (đóng Finding #2) — KHÔNG dùng cờ local qrNhapCommitStarted làm authority quyết định
+        // rollback: cờ này chỉ phản ánh việc PROMISE phía client có resolve hay không, còn response-loss
+        // có thể khiến promise reject/timeout NGAY CẢ KHI server đã ghi commit_started_at (hoặc thậm chí
+        // đã COMMITTED) thành công. Đọc lại marker THẲNG TỪ SERVER (không cache) để lấy bằng chứng thật
+        // trước khi quyết định rollback/xoá marker (mục VI/VIII PROM FIX-01B).
+        let serverMarker;
+        try{
+          const markerSnap = await db.ref('qr_nhap_request_marker/'+qrNhapRequestId).once('value');
+          serverMarker = markerSnap.val();
+        }catch(readErr){
+          // Không đọc được server (mất mạng cả lúc đọc lại) — KHÔNG được coi là "chắc chắn chưa commit"
+          // chỉ vì không đọc được. Không rollback mù, không xoá marker, không gọi lại balance — an toàn
+          // dữ liệu quan trọng hơn dọn marker cho đẹp (mục X/XV). Để lần bấm lại KẾ TIẾP tự đối chiếu.
+          errEl.innerHTML = `<div class="err-msg">⛔ Không xác nhận được kết quả ghi Nhập kho (mất phản hồi mạng, kể cả khi kiểm tra lại) — hệ thống KHÔNG tự hoàn tác vì giao dịch có thể đã được lưu ở máy chủ. Vui lòng bấm "Xác nhận" lại (giữ nguyên số liệu) để hệ thống tự đối chiếu — KHÔNG đóng modal và nhập lại từ đầu.</div>`;
+          submitBtn.disabled = false;
+          return;
+        }
+        if(serverMarker && serverMarker.status==='COMMITTED'){
+          // CASE A (mục VIII) — server xác nhận request này ĐÃ COMMITTED thật (update() cuối thực ra đã
+          // thành công, chỉ mất phản hồi cho client) — không rollback, không ghi lại, báo hoàn tất.
+          toast('Đã ghi nhận giao dịch.');
+          closeModal();
+          if(onDone) onDone();
+          return;
+        }
+        if(serverMarker && serverMarker.commit_started_at){
+          // CASE B (mục VIII) — server xác nhận ĐÃ chạm mốc có-thể-ảnh-hưởng-balance (mốc này giờ đặt
+          // TRƯỚC cả bước balance atomic — xem qrNhapMarkerMarkCommitStarted() phía trên) nhưng CHƯA
+          // COMMITTED. Đối chiếu bằng chứng ledger thật trước khi kết luận; nếu vẫn chưa xác nhận được,
+          // giữ nguyên UNKNOWN_COMMIT — KHÔNG rollback, KHÔNG xoá marker, KHÔNG gọi lại balance.
+          const rec = await qrNhapMarkerReconcile(qrNhapRequestId, serverMarker).catch(()=>({state:'UNKNOWN_COMMIT'}));
+          if(rec.state==='COMMITTED'){
+            toast('Đã ghi nhận giao dịch.');
+            closeModal();
+            if(onDone) onDone();
+            return;
+          }
+          errEl.innerHTML = `<div class="err-msg">⛔ Không xác nhận được kết quả ghi Nhập kho (mất phản hồi mạng ngay khi đang lưu) — hệ thống KHÔNG tự hoàn tác vì giao dịch có thể đã được lưu ở máy chủ. Vui lòng bấm "Xác nhận" lại (giữ nguyên số liệu) để hệ thống tự đối chiếu — KHÔNG đóng modal và nhập lại từ đầu.</div>`;
+          submitBtn.disabled = false;
+          return;
+        }
+        // CASE C/D (mục VIII) — server xác nhận CHƯA có commit_started_at (marker ACTIVE hoặc không còn
+        // tồn tại). Vì mốc commit_started_at giờ đặt TRƯỚC bước balance atomic, điều này nghĩa là bước
+        // có-thể-ảnh-hưởng-balance CHẮC CHẮN CHƯA từng được thử cho request này — an toàn để giải phóng
+        // marker (hàm tự kiểm tra lại, không xoá nếu vừa có commit_started_at do race) để lần bấm lại KẾ
+        // TIẾP không bị chặn nhầm bởi chính request lỗi của mình.
+        await qrNhapMarkerFail(qrNhapRequestId).catch(()=>{});
+      }
       // Rollback cache nếu đã giữ chỗ atomic thành công nhưng bước ghi sổ cái sau đó thất bại.
       if(dstAtomicApplied){
         // Cả 2 vế (Chuyển công đoạn) đã áp dụng — hoàn lại cả 2.
