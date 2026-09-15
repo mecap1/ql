@@ -109,27 +109,18 @@ button{font-family:inherit;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
 
-/* ---------- Login screen (redesign PROM-UI-01 — 2 cột trên desktop:
-   trái .auth-visual (branding), phải .auth-card-col chứa .auth-card —
-   phạm vi thay đổi chỉ trong .auth-visual/.auth-card/.auth-card-col/.center-screen,
-   KHÔNG đụng .brand-mark dùng chung ở sidebar #app-shell,
-   KHÔNG đổi bất kỳ id/class mà JS đang dùng) ---------- */
+/* ---------- Login screen (redesign v3 — Minimal Premium / Corporate MES,
+   layout 1 cột, card đăng nhập ở giữa màn hình — phạm vi thay đổi chỉ trong
+   .auth-card / .center-screen, KHÔNG đụng .brand-mark dùng chung ở sidebar
+   #app-shell, KHÔNG đổi bất kỳ id/class mà JS đang dùng) ---------- */
 .center-screen{
-  min-height:100vh;display:flex;align-items:stretch;justify-content:center;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;
   background:
     radial-gradient(circle at 15% -10%, rgba(47,111,237,0.07) 0%, transparent 45%),
     radial-gradient(circle at 105% 110%, rgba(76,141,255,0.06) 0%, transparent 50%),
     linear-gradient(180deg, #EAF3FF 0%, #F3F8FE 60%, #F7FAFD 100%);
-}
-.auth-visual{
-  flex:0 1 44%;max-width:600px;min-width:340px;display:flex;flex-direction:column;
-  justify-content:center;padding:60px 60px;position:relative;z-index:1;
-  border-right:1px solid rgba(15,23,42,0.06);
-}
-.auth-card-col{
-  flex:1 1 56%;display:flex;align-items:center;justify-content:center;
-  padding:24px;position:relative;z-index:1;
+  padding:24px;
 }
 .auth-card{
   width:100%;max-width:520px;background:#ffffff;
@@ -144,29 +135,14 @@ button{font-family:inherit;}
 .brand .brand-logo-wrap{display:flex;flex-direction:column;gap:2px;}
 .brand .brand-logo-wrap span{margin-top:0;}
 
-/* Logo công ty — cột branding bên trái */
-.auth-visual .brand-logo-wrap{display:flex;justify-content:flex-start;margin-bottom:32px;}
-.auth-visual .brand-logo-wrap img{height:50px;width:auto;max-width:230px;object-fit:contain;}
-.auth-visual-title{font-size:25px;line-height:1.35;color:#0f1b2d;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;margin-bottom:14px;}
-.auth-visual-desc{font-size:14px;line-height:1.7;color:#64748b;font-family:'Inter',sans-serif;font-weight:400;max-width:400px;}
+/* Logo công ty — căn giữa phía trên card đăng nhập */
+.auth-card .brand-logo-wrap{display:flex;justify-content:center;margin-bottom:26px;}
+.auth-card .brand-logo-wrap img{height:44px;width:auto;max-width:220px;object-fit:contain;}
 
 .auth-card .form-head{text-align:center;margin-bottom:26px;}
 .auth-card .form-head h2{font-size:24px;color:#0f1b2d;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
 .auth-card .form-head p{font-size:13.5px;color:#64748b;margin-top:8px;line-height:1.6;font-family:'Inter',sans-serif;font-weight:400;}
 
-/* >880px: 2 cột (trái branding, phải card). ≤880px: xếp chồng — branding thu gọn ở trên, card bên dưới. */
-@media (max-width:880px){
-  .center-screen{flex-direction:column;}
-  .auth-visual{
-    flex:0 0 auto;max-width:100%;min-width:0;border-right:none;
-    border-bottom:1px solid rgba(15,23,42,0.06);
-    padding:36px 24px 26px;align-items:center;text-align:center;
-  }
-  .auth-visual .brand-logo-wrap{justify-content:center;margin-bottom:16px;}
-  .auth-visual-title{font-size:20px;}
-  .auth-visual-desc{max-width:100%;margin:0 auto;}
-  .auth-card-col{padding:24px 16px;}
-}
 @media (max-width:600px){
   .auth-card{max-width:calc(100% - 32px);padding:32px 22px 26px;border-radius:18px;}
 }
@@ -2625,13 +2601,8 @@ tbody tr.clickable{cursor:pointer;}
 
 <!-- ============ LOGIN SCREEN ============ -->
 <div class="center-screen" id="login-screen" style="display:none;">
-  <div class="auth-visual">
-    <div class="brand-logo-wrap"><img id="login-brand-logo" alt="Logo công ty"></div>
-    <h1 class="auth-visual-title">MES Cable<br>Quản lý sản xuất cáp</h1>
-    <p class="auth-visual-desc">Theo dõi nguyên vật liệu, bán thành phẩm và tiến độ sản xuất theo thời gian thực trên toàn bộ dây chuyền.</p>
-  </div>
-  <div class="auth-card-col">
   <div class="auth-card">
+    <div class="brand-logo-wrap"><img id="login-brand-logo" alt="Logo công ty"></div>
     <div class="auth-form-panel">
       <div class="form-head">
         <h2>Đăng nhập</h2>
@@ -2668,7 +2639,6 @@ tbody tr.clickable{cursor:pointer;}
       </div>
       <div class="auth-version">MES Cable v<span id="login-version">1.0.0</span></div>
     </div>
-  </div>
   </div>
 </div>
 <script>
@@ -9566,12 +9536,61 @@ async function renderTonKho(container){
       // GATE 02 — chỉ dùng cho action==='TRA' (mục 16: KHÔNG đổi flow CAP). Token null nghĩa là chưa
       // giành lock hoặc không áp dụng (CAP) — finally bên dưới tự bỏ qua release khi token null.
       let lockToken = null;
-      // FIX-03 — tạo requestId MỘT LẦN cho lần submit CẤP NVL này (giữ nguyên nếu đang retry cùng
-      // submission trước đó chưa COMMITTED). Không dùng push key làm idempotency key (mục IV FIX-03).
-      if(action==='CAP' && !nvlIssueRequestId) nvlIssueRequestId = uid();
       let nvlIssueLedgerKey = null;
       try{
         if(action==='CAP'){
+          // FIX-03B — xác định requestId qua SERVER-SIDE logical operation identity thay vì tự sinh
+          // uid() mù ở đây: uid() cục bộ trong biến tab/memory không phân biệt được "2 tab/browser
+          // context khác nhau cùng nộp 1 lần CẤP NVL logic giống hệt nhau" (mỗi tab tự uid() ra 1
+          // requestId khác nhau → marker không khoá được nhau) và cũng KHÔNG sống sót qua reload
+          // (biến memory mất, tab tự cấp uid() mới, bỏ qua marker cũ đang pending trên server). Thay
+          // vào đó: tính nvlIssueOperationKey() từ đúng bộ dữ liệu mà 1 lần CẤP NVL thật sự dùng
+          // (kho/NVL/LOT/LSX/số lượng — soLuong CÓ đưa vào vì đây là dữ liệu người dùng chủ động nhập
+          // cho lần cấp cụ thể này, không phải field ngẫu nhiên như timestamp/tab id), rồi hỏi server
+          // (nvlIssueResolveRequestId(), transaction thật trên nvl_issue_operation/{operationKey} —
+          // KHÔNG phải read-rồi-set) xem đã có requestId nào đang giữ chỗ cho đúng operation này chưa.
+          // Nếu có và CHƯA COMMITTED → reuse nguyên requestId đó (để nvlIssueMarkerBegin()/Reconcile()
+          // hiện có, KHÔNG sửa, tự quyết định resume/reconcile — cross-tab và reload đều đi qua đúng
+          // 1 con đường này). Giữ nguyên nvlIssueRequestId nếu đã có sẵn (đang retry cùng submission
+          // trước đó chưa COMMITTED — y hệt FIX-03 gốc).
+          //
+          // FIX-03C — GAP ĐÃ PHÁT HIỆN sau FIX-03B: nếu operationKey đã COMMITTED, bản FIX-03B TỰ ĐỘNG
+          // renew sang requestId MỚI rồi lập tức tiếp tục balance — với 1 tab/phiên bị delay/offline/
+          // reload rồi mới gọi tới đây LẦN ĐẦU (chưa từng tự resolve trước đó nên KHÔNG có
+          // nvlIssueRequestId cũ trong tay), điều này KHÔNG THỂ phân biệt được với "người dùng thực sự
+          // muốn Cấp một lần MỚI với đúng số liệu cũ" — cả 2 trường hợp nhìn từ server tại đúng thời
+          // điểm gọi đều giống hệt nhau (operationKey → requestId cũ → COMMITTED). Tự động renew trong
+          // trường hợp đầu = DOUBLE BALANCE EFFECT thật (đúng gap FIX-03C mô tả). Vì KHÔNG có tín hiệu
+          // server nào phân biệt nổi 2 trường hợp này, và tuyệt đối không được chọn nhầm theo hướng
+          // gây trùng, FIX-03C KHÔNG tự renew ngầm nữa: nvlIssueResolveRequestId() giờ CHỈ trả bằng
+          // chứng (đã COMMITTED hay chưa), KHÔNG tự quyết định renew. Việc "đây có thật là 1 logical
+          // submission MỚI hay không" được chuyển thành 1 xác nhận TƯỜNG MINH từ người dùng ngay tại
+          // đây (dùng đúng confirm() — pattern xác nhận thao tác quan trọng đã dùng khắp app này, VD
+          // xoá dòng định mức/kết thúc Batch/chốt công…, không phát minh UI mới): CHỈ khi người dùng
+          // bấm OK xác nhận "đúng, tôi muốn Cấp THÊM một lần MỚI", nvlIssueOperationRenew() (giữ nguyên,
+          // vẫn atomic transaction — mục XX.J) mới được gọi để cấp requestId MỚI. Nếu người dùng không
+          // xác nhận (mặc định an toàn — không click gì / bấm Cancel), coi như "đã xong", KHÔNG tạo
+          // requestId mới, KHÔNG gọi balance — đúng yêu cầu "STALE REQUEST SAU COMMITTED = TUYỆT ĐỐI
+          // KHÔNG ĐƯỢC BALANCE LẠI", đồng thời vẫn cho phép 1 lần Cấp mới hợp lệ (mục XV) khi người
+          // dùng THẬT SỰ xác nhận muốn vậy — identity của logical submission MỚI được tạo đúng tại thời
+          // điểm bắt đầu logical submission mới (mục XIII), không suy luận ngầm từ business fields.
+          if(!nvlIssueRequestId){
+            const nvlIssueOpKey = nvlIssueOperationKey(khoId, vtId, lotId, lsxId, soLuong);
+            const nvlIssueResolved = await nvlIssueResolveRequestId(nvlIssueOpKey);
+            if(nvlIssueResolved.alreadyCommitted){
+              const nvlIssueWantsNewCap = confirm(`Yêu cầu Cấp NVL với ĐÚNG Kho/NVL/LOT/LSX/Số lượng này đã được ghi nhận THÀNH CÔNG trước đó (có thể do tải lại trang, mất mạng giữa chừng, hoặc một tab/thiết bị khác đã thực hiện). Hệ thống KHÔNG tự tạo giao dịch mới để tránh cấp trùng NVL.\n\nBấm OK CHỈ KHI bạn CHẮC CHẮN muốn Cấp NVL THÊM một lần MỚI (sẽ tạo giao dịch xuất kho MỚI, cộng dồn thêm ${fmtNum(soLuong)}).\nBấm Cancel nếu bạn chỉ đang kiểm tra/bấm lại — hệ thống sẽ coi như đã hoàn tất, không ghi thêm gì.`);
+              if(!nvlIssueWantsNewCap){
+                toast(`✓ Yêu cầu Cấp NVL này đã được thực hiện trước đó — không tạo giao dịch mới.`);
+                soLuongInp.value = ''; document.getElementById('cnv-lydo').value=''; document.getElementById('cnv-ghichu').value='';
+                await renderInfo();
+                submitBtn.disabled = false;
+                return;
+              }
+              nvlIssueRequestId = await nvlIssueOperationRenew(nvlIssueOpKey, nvlIssueResolved.requestId, uid());
+            } else {
+              nvlIssueRequestId = nvlIssueResolved.requestId;
+            }
+          }
           // FIX-03 — deterministic ledgerKey pre-generate TRƯỚC khi giữ chỗ balance, gắn vào marker
           // ngay từ Begin() để Reconcile() sau này có bằng chứng để so khớp (mục VIII FIX-03).
           nvlIssueLedgerKey = db.ref('kho_giao_dich').push().key;
@@ -9673,6 +9692,23 @@ async function renderTonKho(container){
         }
       }catch(err){
         if(action==='CAP' && nvlIssueRequestId){
+          // FIX-03B — QUAN TRỌNG: với requestId giờ có thể được REUSE giữa nhiều tab/phiên (xem
+          // nvlIssueResolveRequestId() ở trên), REQUEST_IN_PROGRESS ném ra từ nvlIssueMarkerBegin()
+          // không còn chắc chắn là "chính tab này tự đụng chính nó" như giả định gốc của FIX-03 — rất
+          // có thể là MỘT TAB/PHIÊN KHÁC đang thực sự sở hữu và xử lý CÙNG nvlIssueRequestId này ngay
+          // lúc này (marker đang ACTIVE, còn trong hạn NVL_ISSUE_MARKER_ABANDON_MS). TUYỆT ĐỐI KHÔNG
+          // được rơi xuống nhánh CASE D (nvlIssueMarkerFail) bên dưới trong trường hợp này — làm vậy
+          // có thể xoá mất marker ACTIVE hợp lệ của chủ sở hữu thật (mục "MULTI-TAB + BEFORE BALANCE":
+          // "B ... không phá marker A"). Xử lý riêng: KHÔNG fail marker, KHÔNG đổi nvlIssueRequestId —
+          // giữ nguyên để lần bấm lại kế tiếp (của tab này) tự đi qua đúng nvlIssueMarkerBegin() hiện
+          // có và tự đối chiếu (nếu lúc đó chủ sở hữu kia đã COMMITTED thì sẽ nhận alreadyCommitted;
+          // nếu vẫn đang xử lý thì lại nhận đúng lỗi này lần nữa) — không tạo requestId mới, không gọi
+          // balance.
+          if(err && err.code==='REQUEST_IN_PROGRESS'){
+            errBox.innerHTML = `<div class="err-msg">⛔ Yêu cầu Cấp NVL này (cùng LOT/NVL/Kho/Số lượng) đang được xử lý ở một tab/phiên khác — vui lòng đợi giây lát rồi bấm "Xác nhận" lại để hệ thống tự đối chiếu, không mở thêm tab để lặp lại thao tác.</div>`;
+            submitBtn.disabled = false;
+            return;
+          }
           // FIX-03 — KHÔNG rollback mù, KHÔNG retry balance mù: đọc lại marker THẲNG TỪ SERVER (không
           // cache) để lấy bằng chứng thật trước khi quyết định (y hệt pattern đã audit ở
           // qrNhapMarkerBegin()/FIX-01B cho NHẬP QR — không phát minh cơ chế mới, mục VI/VIII FIX-03).
@@ -10931,6 +10967,136 @@ async function nvlIssueMarkerFail(requestId){
     if(!cur || cur.status==='COMMITTED' || cur.commit_started_at) return cur;
     return null;
   }).catch(()=>{});
+}
+
+// ================================================================
+// FIX-03B — GAP ĐÃ PHÁT HIỆN (sau khi FIX-03 đã pass): FIX-03 cho requestId sống trong biến JS cục bộ
+// của closure openCapTraNvlModal() (`let nvlIssueRequestId = null;`) và được sinh bằng uid() ngay
+// trong tab đang mở modal. Hệ quả:
+//   1) CROSS-TAB — 2 tab/browser context cùng mở modal CẤP NVL cho CÙNG 1 LOT/NVL/Kho/Số lượng, mỗi
+//      tab tự uid() ra 1 requestId RIÊNG (RA ở tab A, RB ở tab B) → 2 marker RIÊNG (RA/RB) không hề
+//      biết tới nhau → không marker nào khoá được marker kia → có thể xảy ra 2 lần
+//      inventoryAdjustBalanceAtomic() thật cho CÙNG 1 lần cấp mà người dùng coi là MỘT thao tác.
+//   2) RELOAD — requestId chỉ tồn tại trong memory JS của closure hiện tại; reload phá huỷ closure →
+//      biến mất → lần mở modal/submit kế tiếp CHẮC CHẮN tự uid() ra requestId MỚI, kể cả khi request
+//      cũ vẫn đang ACTIVE/BALANCE_COMMIT_STARTED/UNKNOWN_COMMIT trên server — không có cách nào phát
+//      hiện lại được request cũ.
+//
+// FIX-03B vá 2 gap này bằng cách thêm ĐÚNG 1 lớp SERVER-SIDE, NGOÀI biến tab/localStorage/sessionStorage:
+// 1 "logical operation identity" ánh xạ operationKey (canonical fingerprint của đúng bộ dữ liệu 1 lần
+// CẤP NVL thật sự dùng: kho/NVL/LOT/LSX/số lượng — xem nvlIssueOperationKey()) → requestId hiện đang
+// được server công nhận cho operation đó. TUYỆT ĐỐI KHÔNG đụng vào state machine marker đã có
+// (nvlIssueMarkerBegin/MarkCommitStarted/Reconcile/Fail, path nvl_issue_request_marker/{requestId}) —
+// lớp mới này CHỈ có 1 việc duy nhất: trả lời câu hỏi "requestId nào là đúng cho lần cấp NVL này",
+// sau đó giao lại 100% cho state machine FIX-03 hiện có (KHÔNG sửa) xử lý tiếp resume/reconcile/
+// abandon — tránh trùng lặp 2 state machine cho cùng 1 khái niệm.
+//
+// Schema mới (additive, KHÔNG đổi path/field đã có):
+//   nvl_issue_operation/{operationKey}
+//     .request_id       — requestId server đang công nhận là "chủ" của operationKey này
+//     .claimed_at        — thời điểm requestId hiện tại được gán (chỉ để tham khảo/debug, KHÔNG dùng
+//                           để tự hết hạn/tự xoá — mọi quyết định resume/abandon vẫn do
+//                           nvl_issue_request_marker/{requestId} + NVL_ISSUE_MARKER_ABANDON_MS hiện có
+//                           quyết định, KHÔNG lặp lại TTL ở lớp operation này)
+//     .prev_request_id  — (chỉ có khi đã từng "renew" sau COMMITTED) requestId cũ để truy vết, không
+//                           dùng cho logic.
+//
+// Vòng đời: 1 operationKey ánh xạ tới TỐI ĐA 1 requestId trong khi requestId đó CHƯA COMMITTED (đây
+// chính là cơ chế khoá cross-tab: tab thứ 2 hỏi operationKey giống hệt sẽ nhận lại CÙNG requestId của
+// tab thứ nhất thay vì tự tạo mới). Khi requestId đó đã COMMITTED (xong hẳn), operationKey được PHÉP
+// ánh xạ sang 1 requestId MỚI cho lần CẤP NVL hợp lệ tiếp theo (không biến thành khoá vĩnh viễn chặn
+// mọi lần cấp trong tương lai cho cùng kho/NVL/LOT/LSX/số lượng — mục "REQUEST ID VÀ OPERATION KEY").
+// Node KHÔNG bao giờ bị xoá bởi FIX-03B khi trạng thái chưa chắc chắn (không tự dọn bằng TTL ở đây) —
+// việc "dọn" duy nhất là GHI ĐÈ bằng requestId mới, và CHỈ xảy ra sau khi đã xác nhận trực tiếp từ
+// server rằng requestId cũ đã COMMITTED.
+
+// Fingerprint CANONICAL của đúng bộ dữ liệu 1 lần CẤP NVL: kho/NVL/LOT(production_lot)/LSX/số lượng.
+// Đã audit UI (openCapTraNvlModal()) trước khi chọn field: modal chỉ có 1 bộ select/1 input số lượng
+// (không có cơ chế nhiều dòng/nhiều NVL trong 1 lần submit — mỗi lần "Xác nhận" tạo đúng 1 bản ghi
+// kho_giao_dich), nên fingerprint theo đúng 5 field này đại diện ĐÚNG 1 lần submit, không thiếu không
+// thừa dòng. lsxId về lý thuyết suy ra được từ lotId (mỗi production_lot có đúng 1 lsx_id cố định —
+// xem lsxSel/lotSel ở openCapTraNvlModal()) nhưng vẫn đưa vào key cho chắc (không hại, không đổi ý
+// nghĩa). soLuong CÓ đưa vào fingerprint: đây là dữ liệu người dùng chủ động nhập cho lần cấp CỤ THỂ
+// này (không phải field ngẫu nhiên như Date.now()/tab id) — bỏ soLuong ra sẽ khiến 2 lần cấp số lượng
+// KHÁC NHAU hợp lệ cho cùng kho/NVL/LOT/LSX (VD cấp 50kg rồi cấp thêm 30kg) bị nhầm là CÙNG 1 operation
+// và bị khoá chờ nhau sai. ghi_chú/lý_do KHÔNG đưa vào (không phải danh tính nghiệp vụ của lần cấp,
+// có thể bị người dùng gõ khác đi giữa các lần bấm mà vẫn là cùng 1 ý định). Số lượng được canonicalize
+// (làm tròn 4 chữ số thập phân — ĐÚNG độ chính xác app đang dùng ở mọi nơi khác, VD
+// inventoryAdjustBalanceAtomic()/coTheTra) rồi đổi '.' → 'p' vì Firebase Realtime Database KHÔNG cho
+// phép ký tự '.' trong tên key.
+function nvlIssueOperationKey(khoId, vtId, lotId, lsxId, soLuong){
+  const soLuongCanon = (Math.round(Number(soLuong||0)*10000)/10000).toFixed(4).replace(/\./g,'p');
+  return 'CAP|'+khoId+'|'+vtId+'|'+lotId+'|'+lsxId+'|'+soLuongCanon;
+}
+
+// Claim operationKey bằng TRANSACTION thật của Firebase (KHÔNG phải read → if empty → set, tránh race
+// condition đúng yêu cầu). Nếu chưa có ai giữ operationKey này: gán candidateRequestId của CHÍNH lần
+// gọi này. Nếu đã có người giữ từ trước (bất kể trạng thái gì): trả lại y nguyên record hiện có (return
+// cur, KHÔNG return undefined — để transaction thực sự "commit" với giá trị hiện tại, cho phép đọc lại
+// chính xác ai đang giữ, thay vì abort). Quyết định "reuse hay renew" KHÔNG nằm trong hàm này — hàm
+// này chỉ trả lời "ai đang giữ operationKey ngay lúc này", còn nvlIssueResolveRequestId() bên dưới mới
+// đọc marker của requestId đó để quyết định.
+async function nvlIssueOperationClaim(operationKey, candidateRequestId){
+  const now = Date.now();
+  const txResult = await db.ref('nvl_issue_operation/'+operationKey).transaction(cur=>{
+    if(!cur || !cur.request_id) return { request_id: candidateRequestId, claimed_at: now };
+    return cur; // đã có người giữ — giữ nguyên, không ghi đè mù.
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return (val && val.request_id) || candidateRequestId;
+}
+
+// Renew operationKey sang requestId MỚI — CHỈ được gọi sau khi đã xác nhận trực tiếp từ server rằng
+// requestId hiện tại (expectedOldRequestId) đã COMMITTED (xem nvlIssueResolveRequestId()). Cũng dùng
+// transaction thật: nếu lúc ghi, operationKey đã bị 1 tab khác đổi khác đi (VD 2 tab cùng phát hiện
+// COMMITTED và cùng renew gần như đồng thời) thì request thua cuộc trả lại đúng giá trị request khác
+// đã ghi (KHÔNG ghi đè), để tự hội tụ về CÙNG 1 requestId mới thay vì tạo 2 requestId mới song song.
+async function nvlIssueOperationRenew(operationKey, expectedOldRequestId, candidateRequestId){
+  const now = Date.now();
+  const txResult = await db.ref('nvl_issue_operation/'+operationKey).transaction(cur=>{
+    if(!cur || cur.request_id === expectedOldRequestId){
+      return { request_id: candidateRequestId, claimed_at: now, prev_request_id: expectedOldRequestId };
+    }
+    return cur; // đã bị đổi bởi tab khác trong lúc này — dùng lại giá trị họ vừa ghi, không ghi đè.
+  });
+  const val = txResult && txResult.snapshot ? txResult.snapshot.val() : null;
+  return (val && val.request_id) || candidateRequestId;
+}
+
+// Điểm vào DUY NHẤT mà openCapTraNvlModal() gọi để lấy requestId cho 1 lần submit CẤP NVL — thay thế
+// hoàn toàn cho uid() mù trước đây. Luôn hỏi SERVER (không cache/không localStorage/không biến tab) —
+// vì vậy hoạt động ĐÚNG NHƯ NHAU dù là: (a) submit bình thường lần đầu, (b) tab thứ 2 mở cùng lúc, hay
+// (c) sau reload — cả 3 trường hợp đều đi qua đúng 1 con đường server-side này.
+//
+// FIX-03C — QUAN TRỌNG: hàm này KHÔNG còn tự ý renew khi phát hiện COMMITTED (khác bản FIX-03B cũ).
+// Lý do: nếu operationKey đã COMMITTED, hàm KHÔNG có cách nào — chỉ bằng dữ liệu server — phân biệt
+// được "đây là 1 tab/phiên bị delay/offline/reload thuộc CHÍNH lần submit đã COMMITTED đó, giờ mới
+// gọi tới lần đầu" (PHẢI coi là đã xong, TUYỆT ĐỐI không renew) với "đây là người dùng thật sự bắt đầu
+// 1 logical CẤP NVL MỚI trùng số liệu với lần trước" (ĐƯỢC PHÉP renew) — cả 2 trường hợp tạo ra CÙNG 1
+// trạng thái server tại đúng thời điểm gọi hàm này. Vì tự động chọn nhầm sang renew sẽ gây DOUBLE
+// BALANCE EFFECT (gap FIX-03C), hàm chỉ TRẢ VỀ BẰNG CHỨNG (alreadyCommitted + kết quả cũ), KHÔNG tự
+// quyết định — caller (openCapTraNvlModal()) bắt buộc phải có 1 xác nhận TƯỜNG MINH từ người dùng
+// trước khi được phép gọi nvlIssueOperationRenew() để lấy requestId mới (xem ghi chú FIX-03C ngay tại
+// nơi gọi hàm này).
+async function nvlIssueResolveRequestId(operationKey){
+  const candidateRequestId = uid();
+  const requestId = await nvlIssueOperationClaim(operationKey, candidateRequestId);
+  if(requestId === candidateRequestId) return { requestId, alreadyCommitted:false }; // chưa ai giữ trước đó — ta vừa claim, marker chưa tồn tại, dùng thẳng.
+  // Đã có người giữ operationKey này từ trước (tab khác, hoặc chính tab này ở 1 lần mở modal trước khi
+  // reload) — đọc THẲNG TỪ SERVER (không cache) trạng thái marker THẬT của requestId đó.
+  const markerSnap = await db.ref('nvl_issue_request_marker/'+requestId).once('value');
+  const markerVal = markerSnap.val();
+  if(markerVal && markerVal.status==='COMMITTED'){
+    // KHÔNG renew ở đây (mục VII/XII/XIII FIX-03C) — trả bằng chứng, để caller tự quyết định sau khi
+    // có xác nhận tường minh từ người dùng.
+    return { requestId, alreadyCommitted:true, result: markerVal.result||null };
+  }
+  // markerVal null (chưa từng Begin() — an toàn để reuse, Begin() sẽ tự tạo ACTIVE mới) hoặc markerVal
+  // đang ACTIVE/commit_started_at/UNKNOWN_COMMIT (chưa xong) → reuse nguyên requestId, giao lại cho
+  // nvlIssueMarkerBegin()/nvlIssueMarkerReconcile() hiện có (KHÔNG sửa) tự quyết định resume/reconcile
+  // — đây chính là cơ chế "KHÔNG tạo requestId mới khi operation đang pending" mà cross-tab/reload yêu
+  // cầu.
+  return { requestId, alreadyCommitted:false };
 }
 
 // ================================================================
