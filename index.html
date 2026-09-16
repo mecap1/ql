@@ -475,23 +475,9 @@ tbody tr.clickable{cursor:pointer;}
 .pcd-stat-big .txt{font-size:12px;color:var(--pcd-dim);line-height:1.6;margin-top:8px;}
 .pcd .err-msg{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;}
 
-/* Global Header / Sidebar sáng — chỉ bật khi đang ở trang Dashboard (không đổi theme các trang khác) */
-#app-shell.pcd-shell-light .sidebar{background:#F3FAFA;border-right:1px solid #D8EEEC;}
-#app-shell.pcd-shell-light .sidebar .brand h1{color:#174B57;}
-#app-shell.pcd-shell-light .sidebar .brand span,#app-shell.pcd-shell-light .nav-title{color:#6A8A90;font-weight:600;}
-#app-shell.pcd-shell-light .sidebar .brand-logo-img{background:#FFFFFF;border-radius:8px;padding:4px;box-sizing:border-box;}
-#app-shell.pcd-shell-light .nav-item{color:#174B57;font-weight:500;border-left:3px solid transparent;padding-left:7px;}
-#app-shell.pcd-shell-light .nav-item .ic{color:#176B78;}
-#app-shell.pcd-shell-light .nav-item:hover{background:#E3F7F6;color:#087C83;}
-#app-shell.pcd-shell-light .nav-item:hover .ic{color:#087C83;}
-#app-shell.pcd-shell-light .nav-item.active{background:#D2F3F1;color:#087C83;font-weight:700;border-left:3px solid #08A6A6;border-radius:4px 8px 8px 4px;box-shadow:none;}
-#app-shell.pcd-shell-light .nav-item.active .ic{color:#087C83;}
-#app-shell.pcd-shell-light .sidebar-foot{border-top:1px solid #D8EEEC;}
-#app-shell.pcd-shell-light .user-chip{background:#EAF8F7;border-radius:8px;}
-#app-shell.pcd-shell-light .user-chip .av{background:#08A6A6;}
-#app-shell.pcd-shell-light .user-chip .name{color:#174B57;}
-#app-shell.pcd-shell-light .user-chip .role{color:#6A8A90;}
-#app-shell.pcd-shell-light .logout-link{color:#6A8A90;}
+/* Sidebar luôn đồng nhất 1 màu (--navy) ở mọi trang — theo yêu cầu, không còn override
+   sang nền trắng riêng cho pcd-shell-light nữa (JS classList.add('pcd-shell-light') vẫn giữ
+   nguyên vì còn chi phối .main/.subtab-btn/mobile-header bên dưới, không liên quan sidebar). */
 #app-shell.pcd-shell-light .main{background:#F5F8FC;}
 /* Các nút subtab dạng "viên thuốc" (vd trang Kho: Tất cả/NVL/PHE...) và số đếm đi kèm —
    mặc định dùng màu nền tối của theme gốc nên khi hiển thị trên nền sáng bị chìm, khó đọc. */
