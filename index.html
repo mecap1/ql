@@ -19,29 +19,29 @@
 <style>
 :root{
   /* ---- Design system: Premium Blue Enterprise MES (v2 design-system pass) ---- */
-  --bg:#F4F8FC;
+  --bg:#F5F8FC;
   --bg-2:#F1F5F9;
   --panel:#FFFFFF;
   --panel-2:#EAF4FF;
-  --line:#DCE6F2;
+  --line:#D9E2EC;
   --copper:#007BFF;        /* primary accent — PROM UI-COLOR-01 (Primary Blue #007BFF) */
   --copper-2:#005FCC;      /* primary hover/dark — PROM UI-COLOR-01 */
   --copper-dim:#007BFF;    /* dùng cho active nav / avatar — cùng primary */
   --primary:#007BFF;
   --primary-hover:#005FCC;
   --primary-light:#EAF4FF;
-  --navy:#0756A8;          /* Sidebar — PROM UI-COLOR-01 */
-  --navy-dark:#06427F;     /* Sidebar gradient stop dưới */
+  --navy:#0B4F94;          /* Sidebar — PROM UI-COLOR-01 */
+  --navy-dark:#083B70;     /* Sidebar gradient stop dưới */
   --auth-accent:#007BFF;
   --auth-accent-2:#005FCC;
   --auth-accent-dim:#005FCC;
   --auth-sky-1:#EAF3FF;
   --auth-sky-2:#DCE9FB;
   --auth-sky-3:#BFDBFE;
-  --text:#12304A;
-  --text-dim:#60758A;
+  --text:#172B4D;
+  --text-dim:#475569;
   --text-faint:#8A9BAD;
-  --text-secondary:#60758A;
+  --text-secondary:#475569;
   --ok:#16A34A;
   --warn:#F59E0B;
   --danger:#DC2626;
@@ -53,7 +53,7 @@
   --surface:#FFFFFF;
   --surface-hover:#F8FBFF;
   --surface-secondary:#F8FBFF;
-  --border:#DCE6F2;
+  --border:#D9E2EC;
   --success:#16A34A;
   --warning:#F59E0B;
 
@@ -154,8 +154,8 @@ button{font-family:inherit;}
 .auth-visual-feats{display:none;}
 
 .auth-card .form-head{text-align:center;margin-bottom:26px;}
-.auth-card .form-head h2{font-size:24px;color:#12304A;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
-.auth-card .form-head p{font-size:13.5px;color:#60758A;margin-top:8px;line-height:1.6;font-family:'Inter',sans-serif;font-weight:400;}
+.auth-card .form-head h2{font-size:24px;color:#172B4D;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
+.auth-card .form-head p{font-size:13.5px;color:#475569;margin-top:8px;line-height:1.6;font-family:'Inter',sans-serif;font-weight:400;}
 
 /* ≤820px: card gần full width, margin 16px, logo/form vẫn rõ không tràn màn hình */
 @media (max-width:820px){
@@ -193,7 +193,7 @@ button{font-family:inherit;}
    CHỈ trong auth-card (login) — không đụng .field/.btn dùng chung ở toàn app. */
 .auth-card .field label{font-size:12.5px;text-transform:none;letter-spacing:0;color:#334155;font-weight:500;font-family:'Inter',sans-serif;}
 .auth-card .field input{
-  background:#F5F8FC;border:1px solid #D5E0EC;border-radius:10px;color:#12304A;
+  background:#F5F8FC;border:1px solid #D5E0EC;border-radius:10px;color:#172B4D;
   height:48px;padding:0 14px;font-size:14px;font-family:'Inter',sans-serif;
   transition:border-color .15s, box-shadow .15s, background .15s;
 }
@@ -224,7 +224,7 @@ button{font-family:inherit;}
 .auth-card .input-group{position:relative;display:flex;align-items:center;}
 .auth-card .input-group .in-icon{
   position:absolute;left:14px;display:flex;align-items:center;justify-content:center;
-  color:#60758A;pointer-events:none;width:16px;height:16px;
+  color:#475569;pointer-events:none;width:16px;height:16px;
 }
 .auth-card .input-group input{width:100%;padding-left:42px;}
 .auth-card .input-group.has-toggle input{padding-right:42px;}
@@ -337,9 +337,9 @@ tbody tr.clickable{cursor:pointer;}
    Không nền đen, không gradient trang trí, icon dùng Lucide (data-lucide).
    ================================================================ */
 .pcd{
-  --pcd-bg:#F4F8FC; --pcd-bg2:#EEF3FA; --pcd-card:#FFFFFF;
-  --pcd-border:#DCE6F2; --pcd-border-hi:#BBD8F5;
-  --pcd-text:#12304A; --pcd-dim:#60758A; --pcd-faint:#8A9BAD;
+  --pcd-bg:#F5F8FC; --pcd-bg2:#EEF3FA; --pcd-card:#FFFFFF;
+  --pcd-border:#D9E2EC; --pcd-border-hi:#BBD8F5;
+  --pcd-text:#172B4D; --pcd-dim:#475569; --pcd-faint:#8A9BAD;
   --pcd-navy:#13294B; --pcd-navy-2:#1D3A63;
   --pcd-blue:#007BFF; --pcd-green:#16A34A; --pcd-orange:#D97706; --pcd-purple:#7C3AED; --pcd-red:#DC2626;
   --pcd-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -446,7 +446,7 @@ tbody tr.clickable{cursor:pointer;}
 
 .pcd-table-wrap{overflow-x:auto;}
 .pcd-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.pcd-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--pcd-border);white-space:nowrap;}
+.pcd-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--pcd-border);white-space:nowrap;}
 .pcd-table-wrap tbody td{padding:9px 12px;border-bottom:1px solid var(--pcd-border);color:var(--pcd-text);white-space:nowrap;}
 .pcd-table-wrap tbody tr:last-child td{border-bottom:none;}
 .pcd-table-wrap tbody tr.clickable{cursor:pointer;}
@@ -532,8 +532,8 @@ tbody tr.clickable{cursor:pointer;}
    Chỉ áp dụng cho màn danh sách PO (PAGES.po khi không có poId).
    ================================================================ */
 .pol{
-  --pol-bg:#F4F8FC; --pol-card:#FFFFFF; --pol-border:#DCE6F2; --pol-border-hi:#BBD8F5;
-  --pol-text:#12304A; --pol-dim:#60758A; --pol-faint:#8A9BAD;
+  --pol-bg:#F5F8FC; --pol-card:#FFFFFF; --pol-border:#D9E2EC; --pol-border-hi:#BBD8F5;
+  --pol-text:#172B4D; --pol-dim:#475569; --pol-faint:#8A9BAD;
   --pol-navy:#13294B; --pol-navy-2:#1D3A63; --pol-blue:#007BFF;
   --pol-green:#16A34A; --pol-orange:#D97706; --pol-red:#DC2626;
   --pol-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -584,7 +584,7 @@ tbody tr.clickable{cursor:pointer;}
 .pol-card{background:var(--pol-card);border:1px solid var(--pol-border);border-radius:12px;box-shadow:var(--pol-shadow);overflow:hidden;margin-bottom:18px;}
 .pol-table-wrap{overflow-x:auto;}
 .pol-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1080px;}
-.pol-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--pol-border);white-space:nowrap;}
+.pol-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--pol-border);white-space:nowrap;}
 .pol-table-wrap tbody tr{background:var(--pol-card);}
 .pol-table-wrap tbody td{padding:11px 14px;border-bottom:1px solid var(--pol-border);color:var(--pol-text);white-space:nowrap;vertical-align:middle;}
 .pol-table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -642,8 +642,8 @@ tbody tr.clickable{cursor:pointer;}
    trong .poc, y hệt cách .pcd/.pol đã làm, để không ảnh hưởng các trang khác còn dùng theme cũ.
    ================================================================ */
 .poc{
-  --poc-bg:#F4F8FC; --poc-card:#FFFFFF; --poc-border:#DCE6F2; --poc-border-hi:#BBD8F5;
-  --poc-text:#12304A; --poc-dim:#60758A; --poc-faint:#8A9BAD;
+  --poc-bg:#F5F8FC; --poc-card:#FFFFFF; --poc-border:#D9E2EC; --poc-border-hi:#BBD8F5;
+  --poc-text:#172B4D; --poc-dim:#475569; --poc-faint:#8A9BAD;
   --poc-navy:#13294B; --poc-navy-2:#1D3A63; --poc-blue:#007BFF;
   --poc-green:#16A34A; --poc-orange:#D97706; --poc-red:#DC2626;
   --poc-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -658,7 +658,7 @@ tbody tr.clickable{cursor:pointer;}
 .poc .card{background:var(--poc-card);border:1px solid var(--poc-border);border-radius:12px;box-shadow:var(--poc-shadow);}
 .poc .sub{color:var(--poc-dim);}
 .poc .table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.poc .table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;border-bottom:1px solid var(--poc-border);white-space:nowrap;}
+.poc .table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;border-bottom:1px solid var(--poc-border);white-space:nowrap;}
 .poc .table-wrap tbody tr{background:var(--poc-card);}
 .poc .table-wrap tbody td{padding:10px 12px;border-bottom:1px solid var(--poc-border);color:var(--poc-text);}
 .poc .table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -711,8 +711,8 @@ tbody tr.clickable{cursor:pointer;}
    để dùng an toàn ở cả 2 chỗ; .lxc-page chỉ thêm phần "tràn viền" khi là trang độc lập.
    ================================================================ */
 .lxc-scope{
-  --lxc-card:#FFFFFF; --lxc-border:#DCE6F2; --lxc-border-hi:#BBD8F5;
-  --lxc-text:#12304A; --lxc-dim:#60758A; --lxc-faint:#8A9BAD;
+  --lxc-card:#FFFFFF; --lxc-border:#D9E2EC; --lxc-border-hi:#BBD8F5;
+  --lxc-text:#172B4D; --lxc-dim:#475569; --lxc-faint:#8A9BAD;
   --lxc-navy:#13294B; --lxc-navy-2:#1D3A63; --lxc-blue:#007BFF;
   --lxc-green:#16A34A; --lxc-orange:#D97706; --lxc-red:#DC2626;
   --lxc-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -768,7 +768,7 @@ tbody tr.clickable{cursor:pointer;}
 .lxc-card{background:var(--lxc-card);border:1px solid var(--lxc-border);border-radius:12px;box-shadow:var(--lxc-shadow);overflow:hidden;margin-bottom:18px;}
 .lxc-table-wrap{overflow-x:auto;}
 .lxc-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1080px;}
-.lxc-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 13px;border-bottom:1px solid var(--lxc-border);white-space:nowrap;}
+.lxc-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 13px;border-bottom:1px solid var(--lxc-border);white-space:nowrap;}
 .lxc-table-wrap tbody tr{background:var(--lxc-card);}
 .lxc-table-wrap tbody td{padding:10px 13px;border-bottom:1px solid var(--lxc-border);color:var(--lxc-text);white-space:nowrap;vertical-align:middle;}
 .lxc-table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -827,8 +827,8 @@ tbody tr.clickable{cursor:pointer;}
    .pcd/.pol/.poc đã làm cho Dashboard/PO/LSX — không ảnh hưởng các trang khác còn dùng theme cũ.
    ================================================================ */
 .mdl{
-  --mdl-bg:#F4F8FC; --mdl-card:#FFFFFF; --mdl-border:#DCE6F2; --mdl-border-hi:#BBD8F5;
-  --mdl-text:#12304A; --mdl-dim:#60758A; --mdl-faint:#8A9BAD;
+  --mdl-bg:#F5F8FC; --mdl-card:#FFFFFF; --mdl-border:#D9E2EC; --mdl-border-hi:#BBD8F5;
+  --mdl-text:#172B4D; --mdl-dim:#475569; --mdl-faint:#8A9BAD;
   --mdl-primary:#007BFF; --mdl-primary-2:#005FCC;
   --mdl-green:#16A34A; --mdl-orange:#D97706; --mdl-red:#DC2626;
   --mdl-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -878,7 +878,7 @@ tbody tr.clickable{cursor:pointer;}
 .mdl .btn.ghost:hover{color:var(--mdl-primary);border-color:var(--mdl-border-hi);background:#F7FAFD;}
 .mdl .card{background:var(--mdl-card);border:1px solid var(--mdl-border);border-radius:12px;box-shadow:var(--mdl-shadow);}
 .mdl .table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.mdl .table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--mdl-border);white-space:nowrap;}
+.mdl .table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--mdl-border);white-space:nowrap;}
 .mdl .table-wrap tbody td{padding:11px 14px;border-bottom:1px solid var(--mdl-border);color:var(--mdl-text);}
 .mdl .table-wrap tbody tr{background:#fff;}
 .mdl .table-wrap table th:last-child,.mdl .table-wrap table td:last-child{background:var(--mdl-card);box-shadow:none;}
@@ -900,8 +900,8 @@ tbody tr.clickable{cursor:pointer;}
    cấp: Sản phẩm → Phiên bản Routing (routing_header) → Các bước (routing_chi_tiet, sắp theo thu_tu).
    ================================================================ */
 .rtl{
-  --rtl-bg:#F4F8FC; --rtl-card:#FFFFFF; --rtl-border:#DCE6F2; --rtl-border-hi:#BBD8F5;
-  --rtl-text:#12304A; --rtl-dim:#60758A; --rtl-faint:#8A9BAD;
+  --rtl-bg:#F5F8FC; --rtl-card:#FFFFFF; --rtl-border:#D9E2EC; --rtl-border-hi:#BBD8F5;
+  --rtl-text:#172B4D; --rtl-dim:#475569; --rtl-faint:#8A9BAD;
   --rtl-primary:#007BFF; --rtl-primary-2:#005FCC;
   --rtl-success:#16A34A; --rtl-warning:#F59E0B; --rtl-danger:#DC2626;
   --rtl-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -943,7 +943,7 @@ tbody tr.clickable{cursor:pointer;}
 
 .rtl-table-wrap{overflow-x:auto;}
 .rtl-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.rtl-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--rtl-border);white-space:nowrap;}
+.rtl-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid var(--rtl-border);white-space:nowrap;}
 .rtl-table-wrap tbody td{padding:11px 14px;border-bottom:1px solid var(--rtl-border);color:var(--rtl-text);}
 .rtl-table-wrap tbody tr{background:#fff;}
 .rtl-table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -991,8 +991,8 @@ tbody tr.clickable{cursor:pointer;}
    hình) — chỉ thêm bảng "LSX chưa gom Batch" làm nội dung chính theo đúng yêu cầu, không thay thế.
    ================================================================ */
 .pbl{
-  --pbl-bg:#F4F8FC; --pbl-card:#FFFFFF; --pbl-border:#DCE6F2; --pbl-border-hi:#BBD8F5;
-  --pbl-text:#12304A; --pbl-dim:#60758A; --pbl-faint:#8A9BAD;
+  --pbl-bg:#F5F8FC; --pbl-card:#FFFFFF; --pbl-border:#D9E2EC; --pbl-border-hi:#BBD8F5;
+  --pbl-text:#172B4D; --pbl-dim:#475569; --pbl-faint:#8A9BAD;
   --pbl-primary:#007BFF; --pbl-primary-2:#005FCC;
   --pbl-success:#16A34A; --pbl-warning:#F59E0B; --pbl-danger:#DC2626;
   --pbl-shadow:0 4px 16px rgba(30,80,130,.08);
@@ -1072,7 +1072,7 @@ tbody tr.clickable{cursor:pointer;}
 .pbl-card-title .t [data-lucide]{width:15px;height:15px;}
 .pbl-table-wrap{overflow-x:auto;}
 .pbl-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.pbl-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:12px 16px;border-bottom:1px solid var(--pbl-border);white-space:nowrap;}
+.pbl-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:12px 16px;border-bottom:1px solid var(--pbl-border);white-space:nowrap;}
 .pbl-table-wrap tbody td{padding:12px 16px;border-bottom:1px solid var(--pbl-border);color:var(--pbl-text);white-space:nowrap;}
 .pbl-table-wrap tbody tr{background:#fff;}
 .pbl-table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -1104,7 +1104,7 @@ tbody tr.clickable{cursor:pointer;}
 #modal-box.pbl-modal-light .field label{color:#64748B;}
 #modal-box.pbl-modal-light input,#modal-box.pbl-modal-light select,#modal-box.pbl-modal-light textarea{background:#F7FAFD;border:1px solid #E2E8F0;color:#172B4D;}
 #modal-box.pbl-modal-light .card{background:#F7FAFD;border:1px solid #E2E8F0;}
-#modal-box.pbl-modal-light table thead th{background:#EAF4FF;color:#12304A;border-bottom:1px solid #E2E8F0;}
+#modal-box.pbl-modal-light table thead th{background:#EAF4FF;color:#172B4D;border-bottom:1px solid #E2E8F0;}
 #modal-box.pbl-modal-light table td{border-bottom:1px solid #E2E8F0;color:#172B4D;}
 #modal-box.pbl-modal-light .btn{background:#007BFF;border-color:#007BFF;}
 #modal-box.pbl-modal-light .btn:hover{background:#0F5BC4;}
@@ -1117,7 +1117,7 @@ tbody tr.clickable{cursor:pointer;}
    Không đụng .module-card/.module-grid (đang dùng chung với Master Data).
    ================================================================ */
 .gnsx-light{
-  --gl-bg:#F5F7FA; --gl-card:#ffffff; --gl-border:#DCE6F2; --gl-text:#172033; --gl-dim:#60758A; --gl-faint:#98a2b3;
+  --gl-bg:#F5F7FA; --gl-card:#ffffff; --gl-border:#D9E2EC; --gl-text:#172033; --gl-dim:#475569; --gl-faint:#98a2b3;
   --gl-primary:#007BFF; --gl-success:#16A34A; --gl-warn:#F59E0B; --gl-danger:#DC2626; --gl-purple:#7C3AED;
   background:var(--gl-bg); margin:-26px -32px -60px; padding:24px 32px 44px; color:var(--gl-text); font-family:'Inter',system-ui,sans-serif;
   min-height:calc(100vh + 60px);
@@ -1215,7 +1215,7 @@ tbody tr.clickable{cursor:pointer;}
 .gnsx-light .field label{color:var(--gl-dim);}
 .gnsx-light .field input,.gnsx-light .field select{background:#fbfcfe;border:1px solid var(--gl-border);color:var(--gl-text);border-radius:8px;height:40px;padding:0 12px;font-size:13px;}
 .gnsx-light .field input:focus,.gnsx-light .field select:focus{border-color:var(--gl-primary);outline:none;}
-.gnsx-light table thead th{background:#EAF4FF;color:#12304A;border-bottom:1px solid var(--gl-border);font-size:11px;padding:12px 14px;}
+.gnsx-light table thead th{background:#EAF4FF;color:#172B4D;border-bottom:1px solid var(--gl-border);font-size:11px;padding:12px 14px;}
 .gnsx-light table tbody td{border-bottom:1px solid var(--gl-border);color:var(--gl-text);padding:13px 14px;}
 .gnsx-light table tbody tr:hover{background:#f8fafd;}
 .gnsx-light .mono{font-family:'JetBrains Mono',monospace;}
@@ -1322,7 +1322,7 @@ tbody tr.clickable{cursor:pointer;}
 #modal-box.dash-modal-light{
   background:#FFFFFF;border:1px solid #E2E8F0;color:#172033;
   --panel:#FFFFFF;--panel-2:#F1F5F9;--bg-2:#F1F5F9;--line:#E2E8F0;
-  --text:#172033;--text-dim:#60758A;--text-faint:#8A9BAD;
+  --text:#172033;--text-dim:#475569;--text-faint:#8A9BAD;
   box-shadow:0 30px 70px -20px rgba(20,30,50,.25);
 }
 #modal-box.dash-modal-light .modal-head{border-bottom:1px solid #E2E8F0;}
@@ -1382,7 +1382,7 @@ tbody tr.clickable{cursor:pointer;}
 .gnsx-modal-light .btn.ghost{background:transparent;color:#64748B;border:1px solid #E2E8F0;}
 .gnsx-modal-light .btn.ghost:hover{color:#172033;border-color:#007BFF;}
 .gnsx-modal-light .err-msg{background:#fdecec;border:1px solid rgba(220,38,38,.25);color:#b91c1c;}
-.gnsx-modal-light table thead th{background:#EAF4FF;color:#12304A;border-bottom:1px solid #E2E8F0;}
+.gnsx-modal-light table thead th{background:#EAF4FF;color:#172B4D;border-bottom:1px solid #E2E8F0;}
 .gnsx-modal-light table tbody td{color:#172033;border-bottom:1px solid #E2E8F0;}
 .gnsx-modal-light .badge{background:#f1f3f6;color:#64748B;border-color:#E2E8F0;}
 .gnsx-modal-light .badge.ok{background:rgba(22,163,74,.1);color:#16a34a;border-color:rgba(22,163,74,.28);}
@@ -1687,7 +1687,7 @@ tbody tr.clickable{cursor:pointer;}
    ================================================================ */
 .bom-light{
   --bl-bg:#F7F9FC; --bl-card:#FFFFFF; --bl-border:#E5EAF2; --bl-border-hi:#BBD8F5;
-  --bl-text:#172033; --bl-dim:#60758A; --bl-faint:#8A9BAD;
+  --bl-text:#172033; --bl-dim:#475569; --bl-faint:#8A9BAD;
   --bl-blue:#007BFF; --bl-blue-2:#005FCC; --bl-orange:#D97706; --bl-green:#16A34A; --bl-red:#DC2626;
   --bl-shadow:0 4px 16px rgba(30,80,130,.08);
   background:var(--bl-bg); margin:-26px -32px -60px; padding:24px 32px 50px;
@@ -1748,7 +1748,7 @@ tbody tr.clickable{cursor:pointer;}
 .bom-light .bom-pconn{color:var(--bl-border-hi);}
 
 .bom-light .card{background:var(--bl-card);border:1px solid var(--bl-border);border-radius:12px;box-shadow:var(--bl-shadow);}
-.bom-light table thead th{background:#EAF4FF;color:#12304A;border-bottom:1px solid var(--bl-border);font-size:10.5px;}
+.bom-light table thead th{background:#EAF4FF;color:#172B4D;border-bottom:1px solid var(--bl-border);font-size:10.5px;}
 .bom-light table tbody td{border-bottom:1px solid var(--bl-border);color:var(--bl-text);padding:13px 14px;}
 .bom-light table tbody tr{background:transparent;}
 .bom-light table tbody tr:nth-child(even){background:#FAFBFD;}
@@ -2050,7 +2050,7 @@ tbody tr.clickable{cursor:pointer;}
 /* Table */
 .wipui-table-wrap{overflow-x:auto;}
 .wipui-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.wipui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--wip-border);white-space:nowrap;}
+.wipui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--wip-border);white-space:nowrap;}
 .wipui-table-wrap tbody td{padding:10px 12px;border-bottom:1px solid var(--wip-border);color:var(--wip-text);vertical-align:middle;}
 .wipui-table-wrap tbody tr:last-child td{border-bottom:none;}
 .wipui-table-wrap tbody tr.clickable{cursor:pointer;}
@@ -2232,7 +2232,7 @@ tbody tr.clickable{cursor:pointer;}
 /* Table */
 .hhui-table-wrap{overflow-x:auto;}
 .hhui-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.hhui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--hh-border);white-space:nowrap;}
+.hhui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--hh-border);white-space:nowrap;}
 .hhui-table-wrap tbody td{padding:10px 12px;border-bottom:1px solid var(--hh-border);color:var(--hh-text);vertical-align:middle;white-space:nowrap;}
 .hhui-table-wrap tbody tr:last-child td{border-bottom:none;}
 .hhui-table-wrap tbody tr.total td{background:var(--hh-bg2);font-weight:700;border-top:2px solid var(--hh-border-hi);}
@@ -2382,7 +2382,7 @@ tbody tr.clickable{cursor:pointer;}
 /* Table */
 .hkui-table-wrap{overflow-x:auto;}
 .hkui-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.hkui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--hk-border);white-space:nowrap;}
+.hkui-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--hk-border);white-space:nowrap;}
 .hkui-table-wrap tbody td{padding:10px 12px;border-bottom:1px solid var(--hk-border);color:var(--hk-text);vertical-align:middle;white-space:nowrap;}
 .hkui-table-wrap tbody tr:last-child td{border-bottom:none;}
 .hkui-table-wrap tbody tr.clickable{cursor:pointer;}
@@ -2538,7 +2538,7 @@ tbody tr.clickable{cursor:pointer;}
 .usr-card{background:var(--usr-card);border:1px solid var(--usr-border);border-radius:12px;box-shadow:var(--usr-shadow);overflow:hidden;}
 .usr-table-wrap{overflow-x:auto;}
 .usr-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.usr-table-wrap thead th{text-align:left;background:#EAF4FF;color:#12304A;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:12px 16px;border-bottom:1px solid var(--usr-border);white-space:nowrap;}
+.usr-table-wrap thead th{text-align:left;background:#EAF4FF;color:#172B4D;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:12px 16px;border-bottom:1px solid var(--usr-border);white-space:nowrap;}
 .usr-table-wrap tbody td{padding:11px 16px;border-bottom:1px solid var(--usr-border);color:var(--usr-text);white-space:nowrap;}
 .usr-table-wrap tbody tr{background:#fff;}
 .usr-table-wrap tbody tr:last-child td{border-bottom:none;}
@@ -5015,10 +5015,14 @@ async function renderBomRevisions(main, spId){
       ${list.map((r,i)=>{
         const pos = lockFlags[i];
         const engineBadge = r.template_key ? `<span class="badge copper" title="BOM Engine mới">⚙️ Engine</span>` : `<span class="badge" title="BOM kiểu cũ (dòng định mức thủ công)">Cũ</span>`;
-        return `<tr class="clickable" data-rev="${r.__id}"><td class="mono">${esc(r.ma_revision)}</td><td>${esc(r.phien_ban)} ${engineBadge}</td><td class="mono">v${(r.version!==undefined?Number(r.version):1).toFixed(1)}</td><td>${esc(r.ngay_hieu_luc)}</td><td><span class="badge ${bomRevBadgeClass(r.trang_thai)}">${esc(r.trang_thai)}</span></td><td>${esc(r.mo_ta)}</td><td>${pos.length?`<span class="badge danger">🔒 ${pos.length} PO</span>`:`<span class="badge">—</span>`}</td><td>→</td></tr>`;
+        return `<tr class="clickable" data-rev="${r.__id}"><td class="mono">${esc(r.ma_revision)}</td><td>${esc(r.phien_ban)} ${engineBadge}</td><td class="mono">v${(r.version!==undefined?Number(r.version):1).toFixed(1)}</td><td>${esc(r.ngay_hieu_luc)}</td><td><span class="badge ${bomRevBadgeClass(r.trang_thai)}">${esc(r.trang_thai)}</span></td><td>${esc(r.mo_ta)}</td><td>${pos.length?`<span class="badge danger">🔒 ${pos.length} PO</span>`:`<span class="badge">—</span>`}</td><td class="row-actions"><button class="icon-btn" data-copy-rev="${r.__id}" data-copy-label="${esc((r.ma_revision||'')+' '+(r.phien_ban||''))}" title="📋 Copy BOM sang mã TP khác">📋</button><span style="margin-left:6px;">→</span></td></tr>`;
       }).join('')}
     </tbody></table>`;
     $all('[data-rev]', wrap).forEach(tr=>tr.addEventListener('click', ()=>navigateTo('bom',{spId, revisionId:tr.dataset.rev})));
+    $all('[data-copy-rev]', wrap).forEach(btn=>btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      bomOpenCopyModal(btn.dataset.copyRev, btn.dataset.copyLabel, spId);
+    }));
   });
 
   $('#bom-add-rev').addEventListener('click', ()=>{
@@ -10217,6 +10221,68 @@ async function bomFindActivePOs(revisionId){
 }
 async function bomPushAudit(revisionId, action, detail){
   await db.ref('bom_audit_log').push({ bom_header_id:revisionId, action, detail, user: currentUser?currentUser.full_name:'', at: Date.now() });
+}
+
+/* ---------------- PROM BOM-COPY-01: Copy toàn bộ BOM sang (các) mã TP chưa có BOM ---------------- */
+// Chỉ liệt kê mã TP đang active và CHƯA có bom_revision active nào (đúng yêu cầu "chỉ cho phép
+// copy vào mã TP đang chưa có BOM"). Tái sử dụng master/san_pham + bom_revision đã có, không tạo
+// cấu trúc dữ liệu mới.
+async function bomOpenCopyModal(sourceRevisionId, sourceLabel, currentSpId){
+  const [spSnap, revSnap] = await Promise.all([
+    db.ref('master/san_pham').once('value'),
+    db.ref('bom_revision').once('value'),
+  ]);
+  const hasBom = new Set();
+  revSnap.forEach(ch=>{ const v = ch.val(); if(v.is_active!==false) hasBom.add(v.san_pham_id); });
+  const targets = [];
+  spSnap.forEach(ch=>{ const v = ch.val(); if(v.is_active!==false && ch.key!==currentSpId && !hasBom.has(ch.key)) targets.push({ __id: ch.key, ...v }); });
+  targets.sort((a,b)=>(a.ma_sp||'').localeCompare(b.ma_sp||''));
+  if(!targets.length){ toast('Không có mã TP nào đang chờ tạo BOM để copy sang.', 'err'); return; }
+  $('#modal-box').innerHTML = `<h3>📋 Copy BOM — ${esc(sourceLabel||'')}</h3>
+    <div class="sub" style="margin-bottom:10px;">Chọn một hoặc nhiều mã TP <b>chưa có BOM</b> để nhận bản sao đầy đủ (công đoạn/NVL/định mức/hệ số...) của BOM này. BOM nguồn không bị ảnh hưởng — sau khi copy, hãy tự mở BOM mới để sửa những điểm khác biệt (mã màu, mã NVL, định mức...).</div>
+    <div style="max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:6px;padding:8px 12px;">
+      ${targets.map(t=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;cursor:pointer;"><input type="checkbox" name="bom-copy-target" value="${t.__id}"><span>${esc(t.ma_sp)}${t.ten_sp?' — '+esc(t.ten_sp):''}</span></label>`).join('')}
+    </div>
+    <div class="modal-foot"><button type="button" class="btn ghost" id="bom-copy-cancel">Huỷ</button><button class="btn" type="button" id="bom-copy-confirm">Copy BOM</button></div>`;
+  $('#modal-overlay').classList.add('active');
+  $('#bom-copy-cancel').addEventListener('click', closeModal);
+  $('#bom-copy-confirm').addEventListener('click', async ()=>{
+    const chosen = $all('input[name="bom-copy-target"]:checked', $('#modal-box')).map(el=>el.value);
+    if(!chosen.length){ toast('Chưa chọn mã TP đích', 'err'); return; }
+    const btn = $('#bom-copy-confirm');
+    btn.disabled = true; btn.textContent = 'Đang copy...';
+    try{
+      const n = await bomDeepCopyRevision(sourceRevisionId, chosen);
+      toast(`Đã copy BOM sang ${n} mã TP`);
+      closeModal();
+    }catch(err){
+      toast('Lỗi copy BOM: '+(err && err.message ? err.message : err), 'err');
+      btn.disabled = false; btn.textContent = 'Copy BOM';
+    }
+  });
+}
+// Deep clone 1 bom_revision (header) + toàn bộ bom_chi_tiet của nó sang N mã TP đích.
+// Không sửa bất kỳ giá trị nào (mã màu/NVL/định mức/hệ số K/đơn vị/thông số...) — copy y nguyên
+// mọi field đang có trên header và từng dòng chi tiết. Mỗi mã đích là 1 bản ghi bom_revision +
+// bom_chi_tiet hoàn toàn độc lập (push mới), không tham chiếu ngược về BOM nguồn.
+async function bomDeepCopyRevision(sourceRevisionId, targetSpIds){
+  const [revSnap, linesSnap] = await Promise.all([
+    db.ref('bom_revision/'+sourceRevisionId).once('value'),
+    db.ref('bom_chi_tiet').orderByChild('bom_header_id').equalTo(sourceRevisionId).once('value'),
+  ]);
+  const srcRev = revSnap.val();
+  if(!srcRev) throw new Error('Không tìm thấy BOM nguồn');
+  const srcLines = [];
+  linesSnap.forEach(ch=>srcLines.push(ch.val()));
+  let count = 0;
+  for(const targetSpId of targetSpIds){
+    const newHeader = { ...srcRev, san_pham_id: targetSpId, created_at: Date.now(), created_by: currentUser ? currentUser.full_name : '' };
+    const ref = await db.ref('bom_revision').push(newHeader);
+    await Promise.all(srcLines.map(line=> db.ref('bom_chi_tiet').push({ ...line, bom_header_id: ref.key })));
+    await bomPushAudit(ref.key, 'CREATE', `Copy toàn bộ BOM từ revision ${srcRev.ma_revision || sourceRevisionId}`);
+    count++;
+  }
+  return count;
 }
 // Snapshot: khi PO đã chốt dùng 1 revision (và không còn ở trạng thái Nháp), hệ số kg/m
 // được "đông cứng" lại — nếu sau này BOM revision đó bị sửa, PO cũ vẫn dùng hệ số đã chốt.
