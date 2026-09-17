@@ -1,6 +1,6 @@
 {
-  "name": "MES Cable - Quản lý sản xuất cáp",
-  "short_name": "MES Cable",
+  "name": "Aomaga",
+  "short_name": "Aomaga",
   "description": "Ứng dụng quản lý sản xuất cáp: Master Data, BOM, PO/LSX, Kho.",
   "start_url": "./index.html",
   "scope": "./",
@@ -23,3 +23,4 @@
     }
   ]
 }
+
